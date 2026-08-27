@@ -6,6 +6,9 @@
   <title>Voice Chat Pro</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%23ff725e%22/><circle cx=%2216%22 cy=%2216%22 r=%225%22 fill=%22%2317211c%22/></svg>">
   <link rel="stylesheet" href="starfield.css">
+  <style>
+    .directory{max-width:1120px;margin:0 auto;padding:54px 7% 80px}.directory-header{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:34px}.directory-title{font:700 42px/1.05 Syne,sans-serif;margin:0}.directory-subtitle{color:var(--muted);font-size:12px;margin:12px 0 0}.directory-actions{display:flex;align-items:center;gap:12px}.directory-actions input{width:180px;margin:0}.directory-actions .primary{width:auto;margin:0;padding:14px 20px}.directory-toolbar{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px}.directory-toolbar strong{font:600 16px Syne,sans-serif}.directory-toolbar button{border:0;background:none;color:#8da32d;font:12px 'DM Mono',monospace;cursor:pointer}.directory-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;padding-top:22px}.directory-rooms .room-item{border:1px solid var(--line);padding:22px;background:rgba(255,255,255,.22);display:block}.directory-rooms .room-item span{display:block}.directory-rooms .room-item span:first-child{font:600 18px Syne,sans-serif;margin-bottom:12px}.directory-rooms .room-item span:last-child{color:var(--muted);font-size:11px}.directory-rooms .muted{grid-column:1/-1;padding:36px 0;text-align:center}.directory-settings{max-width:460px;margin:25px auto 0}.directory-settings summary{color:var(--muted);font-size:11px;cursor:pointer}.directory-settings textarea{width:100%;min-height:75px;background:transparent;border:1px solid var(--line);padding:12px;font:12px 'DM Mono',monospace;resize:vertical}@media(max-width:700px){.directory{padding:38px 25px 60px}.directory-header{display:block}.directory-actions{display:block;margin-top:26px}.directory-actions input,.directory-actions .primary{width:100%;margin-top:10px}.directory-title{font-size:34px}}
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -14,18 +17,11 @@
       <div id="connection-status" class="status connecting">Connecting</div>
     </header>
     <main>
-      <section id="join-screen" class="screen active">
-        <div class="intro"><p class="eyebrow">LIVE AUDIO / 01</p><h1>Find your people.<br><span>Start talking.</span></h1><p class="lede">A simple, low-latency room for the conversations that matter.</p></div>
-        <div class="join-panel">
-          <div class="panel-heading"><span>01</span><h2>Enter the room</h2></div>
-          <label for="username-input">Your name</label><input id="username-input" value="Guest" maxlength="40" autocomplete="name">
-          <label for="room-input">Room name</label><input id="room-input" value="lobby" maxlength="80">
-          <button id="join-btn" class="primary">Join room <span>↗</span></button>
-          <button id="create-room-btn" class="secondary">Create a new room <span>+</span></button>
-          <details id="room-settings" class="room-settings"><summary>Room host settings</summary><label for="topic-input">Topic</label><input id="topic-input" maxlength="100" placeholder="English conversation practice"><label for="description-input">Description</label><textarea id="description-input" maxlength="300" placeholder="Add a short room description"></textarea><label for="limit-input">Participant limit</label><input id="limit-input" type="number" min="2" max="20" value="6"><button id="save-room-settings-btn" class="secondary" type="button">Save room settings</button></details>
-          <div class="rooms-heading"><span>Active rooms</span><button id="refresh-rooms-btn" class="text-button">Refresh</button></div>
-          <div id="room-list-container" class="room-list"><p class="muted">No active rooms</p></div>
-        </div>
+      <section id="join-screen" class="screen active directory" style="display:block">
+        <div class="directory-header"><div><p class="eyebrow">FREE4TALK COMMUNITY</p><h1 class="directory-title">Language Practice Community</h1><p class="directory-subtitle">Choose a room and start talking with people around the world.</p></div><div class="directory-actions"><input id="username-input" value="Guest" maxlength="40" autocomplete="name" aria-label="Your name" placeholder="Your name"><button id="create-room-btn" class="primary">+ Create Room</button></div></div>
+        <div class="directory-toolbar"><strong>Available rooms</strong><button id="refresh-rooms-btn">Refresh rooms</button></div>
+        <div id="room-list-container" class="directory-rooms"><p class="muted">No active rooms yet. Create the first room.</p></div>
+        <div class="directory-settings"><details id="room-settings"><summary>Room settings for the room you create</summary><label for="room-input">Room name</label><input id="room-input" value="lobby" maxlength="80"><label for="topic-input">Topic</label><input id="topic-input" maxlength="100" placeholder="English conversation practice"><label for="description-input">Description</label><textarea id="description-input" maxlength="300" placeholder="Add a short room description"></textarea><label for="limit-input">Participant limit</label><input id="limit-input" type="number" min="2" max="20" value="6"><button id="save-room-settings-btn" class="secondary" type="button">Save room settings</button></details></div>
       </section>
       <section id="room-screen" class="screen">
         <div class="room-heading"><div><p class="eyebrow">CURRENT ROOM</p><h2 id="room-name-display">lobby</h2><p id="room-topic-display" class="room-topic"></p><p id="participant-count">0 participants</p></div><div class="room-actions"><button id="share-room-btn" class="outline">Copy invite link</button><button id="leave-room-btn" class="outline">Leave room</button></div></div>
