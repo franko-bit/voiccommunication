@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Chat Pro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><circle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%23ff725e%22/><circle cx=%2216%22 cy=%2216%22 r=%225%22 fill=%22%2317211c%22/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Voice Chat Pro home"><span class="brand-mark">◉</span><span>Voice Chat <em>Pro</em></span></a>
+      <div id="connection-status" class="status connecting">Connecting</div>
+    </header>
+    <main>
+      <section id="join-screen" class="screen active">
+        <div class="intro"><p class="eyebrow">LIVE AUDIO / 01</p><h1>Find your people.<br><span>Start talking.</span></h1><p class="lede">A simple, low-latency room for the conversations that matter.</p></div>
+        <div class="join-panel">
+          <div class="panel-heading"><span>01</span><h2>Enter the room</h2></div>
+          <label for="username-input">Your name</label><input id="username-input" value="Guest" maxlength="40" autocomplete="name">
+          <label for="room-input">Room name</label><input id="room-input" value="lobby" maxlength="80">
+          <button id="join-btn" class="primary">Join room <span>↗</span></button>
+          <button id="create-room-btn" class="secondary">Create a new room <span>+</span></button>
+          <div class="rooms-heading"><span>Active rooms</span><button id="refresh-rooms-btn" class="text-button">Refresh</button></div>
+          <div id="room-list-container" class="room-list"><p class="muted">No active rooms</p></div>
+        </div>
+      </section>
+      <section id="room-screen" class="screen">
+        <div class="room-heading"><div><p class="eyebrow">CURRENT ROOM</p><h2 id="room-name-display">lobby</h2><p id="participant-count">0 participants</p></div><div class="room-actions"><button id="share-room-btn" class="outline">Copy invite link</button><button id="leave-room-btn" class="outline">Leave room</button></div></div>
+        <div id="participants-grid" class="participants-grid"></div>
+        <div class="controls"><button id="mute-btn" class="control" disabled><span class="control-icon">◉</span><span>Mute</span></button><button id="speaker-btn" class="control"><span class="control-icon">◖</span><span>Speaker</span></button><label class="mic-picker"><span>Microphone</span><select id="mic-select"><option value="">Default device</option></select></label></div>
+      </section>
+    </main>
+    <div id="audio-container" class="audio-container" aria-hidden="true"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
