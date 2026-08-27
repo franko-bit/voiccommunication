@@ -11,6 +11,8 @@ npm start
 
 Open http://localhost:10000 and allow microphone access.
 
+The frontend files are `index.html`, `starfield.css`, and `orbit-comms.js`.
+
 ## Deploy to Render
 
 Create a **Web Service** connected to this repository:
