@@ -43,6 +43,7 @@ function joinRoom(ws, message) {
   const peers = [...room.members.values()].map(({ userId, username: peerName }) => ({ userId, username: peerName }));
   room.members.set(ws.userId, { ws, userId: ws.userId, username });
   ws.currentRoom = roomName;
+  ws.username = username;
   send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers, hostId: room.hostId, topic: room.topic, description: room.description, limit: room.limit });
   broadcast(room, ws.userId, { type: 'NEW_PEER', peer: { userId: ws.userId, username } });
 }
