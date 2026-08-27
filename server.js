@@ -23,7 +23,7 @@ wss.on('connection', (ws) => {
       if (message.type === 'JOIN_ROOM') joinRoom(ws, message);
       else if (message.type === 'LEAVE_ROOM') leaveRoom(ws);
       else if (message.type === 'GET_ROOMS') sendRoomList(ws);
-      else if (['OFFER', 'ANSWER', 'CANDIDATE', 'AUDIO_LEVEL'].includes(message.type)) {
+      else if (['OFFER', 'ANSWER', 'CANDIDATE', 'AUDIO_LEVEL', 'CHAT_MESSAGE', 'ROOM_SETTINGS'].includes(message.type)) {
         forwardMessage(ws, message);
       }
     } catch (error) {
@@ -37,12 +37,13 @@ function joinRoom(ws, message) {
   leaveRoom(ws);
   const roomName = String(message.room || 'lobby').trim().slice(0, 80) || 'lobby';
   const username = String(message.username || 'Anonymous').trim().slice(0, 40) || 'Anonymous';
-  if (!rooms.has(roomName)) rooms.set(roomName, new Map());
+  if (!rooms.has(roomName)) rooms.set(roomName, { members: new Map(), hostId: ws.userId, topic: String(message.topic || '').slice(0, 100), description: String(message.description || '').slice(0, 300), limit: Math.max(2, Math.min(20, Number(message.limit) || 6)) });
   const room = rooms.get(roomName);
-  const peers = [...room.values()].map(({ userId, username: peerName }) => ({ userId, username: peerName }));
-  room.set(ws.userId, { ws, userId: ws.userId, username });
+  if (room.members.size >= room.limit && !room.members.has(ws.userId)) return send(ws, { type: 'ROOM_ERROR', message: 'This room is full.' });
+  const peers = [...room.members.values()].map(({ userId, username: peerName }) => ({ userId, username: peerName }));
+  room.members.set(ws.userId, { ws, userId: ws.userId, username });
   ws.currentRoom = roomName;
-  send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers });
+  send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers, hostId: room.hostId, topic: room.topic, description: room.description, limit: room.limit });
   broadcast(room, ws.userId, { type: 'NEW_PEER', peer: { userId: ws.userId, username } });
 }
 
@@ -50,9 +51,9 @@ function leaveRoom(ws) {
   if (!ws.currentRoom) return;
   const room = rooms.get(ws.currentRoom);
   if (room) {
-    room.delete(ws.userId);
+    room.members.delete(ws.userId);
     broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: ws.userId });
-    if (room.size === 0) rooms.delete(ws.currentRoom);
+    if (room.members.size === 0) rooms.delete(ws.currentRoom);
   }
   ws.currentRoom = null;
 }
@@ -60,17 +61,23 @@ function leaveRoom(ws) {
 function forwardMessage(ws, message) {
   const room = rooms.get(ws.currentRoom);
   if (!room) return;
-  const outgoing = { ...message, sender: ws.userId };
-  if (message.target && room.has(message.target)) send(room.get(message.target).ws, outgoing);
+  if (message.type === 'ROOM_SETTINGS') {
+    if (ws.userId !== room.hostId) return;
+    room.topic = String(message.topic || '').slice(0, 100);
+    room.description = String(message.description || '').slice(0, 300);
+    room.limit = Math.max(2, Math.min(20, Number(message.limit) || 6));
+  }
+  const outgoing = { ...message, sender: ws.userId, username: ws.username || 'Guest' };
+  if (message.target && room.members.has(message.target)) send(room.members.get(message.target).ws, outgoing);
   else broadcast(room, ws.userId, outgoing);
 }
 
 function sendRoomList(ws) {
-  send(ws, { type: 'ROOM_LIST', rooms: [...rooms.entries()].map(([name, room]) => ({ name, count: room.size })) });
+  send(ws, { type: 'ROOM_LIST', rooms: [...rooms.entries()].map(([name, room]) => ({ name, count: room.members.size })) });
 }
 
 function broadcast(room, senderId, message) {
-  room.forEach(({ ws, userId }) => {
+  room.members.forEach(({ ws, userId }) => {
     if (userId !== senderId) send(ws, message);
   });
 }

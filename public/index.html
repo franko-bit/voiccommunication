@@ -22,13 +22,14 @@
           <label for="room-input">Room name</label><input id="room-input" value="lobby" maxlength="80">
           <button id="join-btn" class="primary">Join room <span>↗</span></button>
           <button id="create-room-btn" class="secondary">Create a new room <span>+</span></button>
+          <details id="room-settings" class="room-settings"><summary>Room host settings</summary><label for="topic-input">Topic</label><input id="topic-input" maxlength="100" placeholder="English conversation practice"><label for="description-input">Description</label><textarea id="description-input" maxlength="300" placeholder="Add a short room description"></textarea><label for="limit-input">Participant limit</label><input id="limit-input" type="number" min="2" max="20" value="6"><button id="save-room-settings-btn" class="secondary" type="button">Save room settings</button></details>
           <div class="rooms-heading"><span>Active rooms</span><button id="refresh-rooms-btn" class="text-button">Refresh</button></div>
           <div id="room-list-container" class="room-list"><p class="muted">No active rooms</p></div>
         </div>
       </section>
       <section id="room-screen" class="screen">
-        <div class="room-heading"><div><p class="eyebrow">CURRENT ROOM</p><h2 id="room-name-display">lobby</h2><p id="participant-count">0 participants</p></div><div class="room-actions"><button id="share-room-btn" class="outline">Copy invite link</button><button id="leave-room-btn" class="outline">Leave room</button></div></div>
-        <div id="participants-grid" class="participants-grid"></div>
+        <div class="room-heading"><div><p class="eyebrow">CURRENT ROOM</p><h2 id="room-name-display">lobby</h2><p id="room-topic-display" class="room-topic"></p><p id="participant-count">0 participants</p></div><div class="room-actions"><button id="share-room-btn" class="outline">Copy invite link</button><button id="leave-room-btn" class="outline">Leave room</button></div></div>
+        <div class="room-layout"><div id="participants-grid" class="participants-grid"></div><aside class="chat-panel"><div class="chat-heading"><span>ROOM CHAT</span><span id="chat-count">0</span></div><div id="chat-messages" class="chat-messages" aria-live="polite"></div><form id="chat-form" class="chat-form"><input id="chat-input" maxlength="500" placeholder="Write a message..."><button type="submit" aria-label="Send message">↗</button></form></aside></div>
         <div class="controls"><button id="mute-btn" class="control" disabled><span class="control-icon">◉</span><span>Mute</span></button><button id="speaker-btn" class="control"><span class="control-icon">◖</span><span>Speaker</span></button><label class="mic-picker"><span>Microphone</span><select id="mic-select"><option value="">Default device</option></select></label></div>
       </section>
     </main>
