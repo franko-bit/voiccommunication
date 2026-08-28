@@ -1100,21 +1100,21 @@
         participants.push({ userId: peer.userId, username: peer.username });
         createPeer(peer.userId, true);
       });
-      room.count = participants.length;
+      currentRoom.count = participants.length;
       roomMessages = [];
-      room.limit = message.limit;
+      currentRoom.limit = message.limit;
       updateRoomInfo();
       renderParticipants();
       connectionStatus.textContent = '● In room';
     } else if (message.type === 'NEW_PEER') {
       participants.push({ userId: message.peer.userId, username: message.peer.username });
       createPeer(message.peer.userId, false);
-      room.count = participants.length;
+      currentRoom.count = participants.length;
       updateRoomInfo();
       renderParticipants();
     } else if (message.type === 'PEER_LEFT') {
       participants = participants.filter(peer => peer.userId !== message.peerId);
-      room.count = participants.length;
+      currentRoom.count = participants.length;
       peerConnections.get(message.peerId)?.close();
       peerConnections.delete(message.peerId);
       document.getElementById(`audio-${message.peerId}`)?.remove();
