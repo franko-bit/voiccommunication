@@ -1619,14 +1619,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
   const account = <?php echo json_encode(['fullName' => $userFullName, 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
   // ── DATA ────────────────────────────────────────────────────────────────
-  let rooms = [
-    { id: '1', name: 'English Lounge', lang: 'English', desc: 'Casual English practice & conversation', count: 0, limit: 10, members: [] },
-    { id: '2', name: 'Spanish Cafe', lang: 'Spanish', desc: 'Spanish conversation at all levels', count: 0, limit: 8, members: [] },
-    { id: '3', name: 'French Salon', lang: 'French', desc: 'Advanced French discussions', count: 0, limit: 6, members: [] },
-    { id: '4', name: 'German Corner', lang: 'German', desc: 'Beginner & intermediate German', count: 0, limit: 6, members: [] },
-    { id: '5', name: 'Mandarin Hub', lang: 'Mandarin', desc: 'Tones, pronunciation & dialogue', count: 0, limit: 10, members: [] },
-    { id: '6', name: 'Italian Studio', lang: 'Italian', desc: 'Learn Italian through conversation', count: 0, limit: 8, members: [] },
-  ];
+  let rooms = [];
 
   let username = '';
   let authToken = '';
@@ -1833,11 +1826,24 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
         const room = rooms.find(item => item.name === activeRoom.name);
         if (room) {
           room.count = activeRoom.count;
+          room.lang = activeRoom.lang || 'English';
+          room.desc = activeRoom.description || '';
           room.limit = Number(activeRoom.limit) || room.limit || 6;
           room.members = activeRoom.members || [];
+        } else {
+          rooms.push({ id: activeRoom.name, name: activeRoom.name, lang: activeRoom.lang || 'English', desc: activeRoom.description || '', count: activeRoom.count, limit: Number(activeRoom.limit) || 6, members: activeRoom.members || [] });
         }
       });
       renderRooms();
+    } else if (message.type === 'ROOM_CREATED') {
+      createModal.classList.remove('open');
+      createForm.reset();
+      const room = message.room;
+      const createdRoom = { id: room.name, name: room.name, lang: room.lang, desc: room.description, count: room.count, limit: room.limit, members: room.members || [] };
+      rooms = rooms.filter(item => item.name !== createdRoom.name);
+      rooms.push(createdRoom);
+      renderRooms();
+      enterRoom(createdRoom);
     } else if (message.type === 'OFFER') {
       handleOffer(message);
     } else if (message.type === 'ANSWER') {
@@ -2080,12 +2086,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
     const lang = document.getElementById('new-room-lang').value.trim() || 'English';
     const desc = document.getElementById('new-room-desc').value.trim() || 'Let\'s practice!';
     const limit = Math.max(2, Math.min(20, Number(document.getElementById('new-room-limit').value) || 6));
-    const newRoom = { id: 'r' + Date.now(), name, lang, desc, count: 0, limit };
-    rooms.push(newRoom);
-    createModal.classList.remove('open');
-    createForm.reset();
-    renderRooms();
-    enterRoom(newRoom);
+    send({ type: 'CREATE_ROOM', name, lang, description: desc, limit });
   });
   createModal.addEventListener('click', e => { if (e.target === createModal) createModal.classList.remove('open'); });
 

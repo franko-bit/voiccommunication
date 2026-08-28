@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -10,7 +11,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, perMessageDeflate: false });
-const rooms = new Map();
+const roomsFile = path.join(__dirname, 'rooms.json');
+const rooms = loadRooms();
 
 wss.on('connection', (ws) => {
   ws.userId = `user_${Math.random().toString(36).slice(2, 10)}`;
@@ -21,6 +23,7 @@ wss.on('connection', (ws) => {
     try {
       const message = JSON.parse(raw.toString());
       if (message.type === 'JOIN_ROOM') joinRoom(ws, message);
+      else if (message.type === 'CREATE_ROOM') createRoom(ws, message);
       else if (message.type === 'LEAVE_ROOM') leaveRoom(ws);
       else if (message.type === 'GET_ROOMS') sendRoomList(ws);
       else if (['OFFER', 'ANSWER', 'CANDIDATE', 'AUDIO_LEVEL', 'CHAT_MESSAGE', 'ROOM_SETTINGS', 'MUTE_PARTICIPANT', 'REMOVE_PARTICIPANT'].includes(message.type)) {
@@ -37,8 +40,10 @@ function joinRoom(ws, message) {
   leaveRoom(ws);
   const roomName = String(message.room || 'lobby').trim().slice(0, 80) || 'lobby';
   const username = String(message.username || 'Anonymous').trim().slice(0, 40) || 'Anonymous';
-  if (!rooms.has(roomName)) rooms.set(roomName, { members: new Map(), hostId: ws.userId, topic: String(message.topic || '').slice(0, 100), description: String(message.description || '').slice(0, 300), limit: Math.max(2, Math.min(20, Number(message.limit) || 6)) });
+  if (!rooms.has(roomName)) return send(ws, { type: 'ROOM_ERROR', message: 'That room does not exist.' });
   const room = rooms.get(roomName);
+  room.members ??= new Map();
+  room.hostId ??= ws.userId;
   if (room.members.size >= room.limit && !room.members.has(ws.userId)) return send(ws, { type: 'ROOM_ERROR', message: 'This room is full.' });
   const peers = [...room.members.values()].map(({ userId, username: peerName, muted }) => ({ userId, username: peerName, muted: Boolean(muted) }));
   room.members.set(ws.userId, { ws, userId: ws.userId, username, muted: false });
@@ -46,6 +51,19 @@ function joinRoom(ws, message) {
   ws.username = username;
   send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers, hostId: room.hostId, topic: room.topic, description: room.description, limit: room.limit });
   broadcast(room, ws.userId, { type: 'NEW_PEER', peer: { userId: ws.userId, username } });
+  broadcastRoomLists();
+}
+
+function createRoom(ws, message) {
+  const name = String(message.name || '').trim().slice(0, 80);
+  const lang = String(message.lang || 'English').trim().slice(0, 40) || 'English';
+  const description = String(message.description || '').trim().slice(0, 300);
+  const limit = Math.max(2, Math.min(20, Number(message.limit) || 6));
+  if (!name) return send(ws, { type: 'ROOM_ERROR', message: 'Room name is required.' });
+  if (rooms.has(name)) return send(ws, { type: 'ROOM_ERROR', message: 'A room with that name already exists.' });
+  rooms.set(name, { name, lang, description, limit, members: new Map(), hostId: null, createdBy: ws.userId });
+  saveRooms();
+  send(ws, { type: 'ROOM_CREATED', room: serializeRoom(rooms.get(name)) });
   broadcastRoomLists();
 }
 
@@ -59,7 +77,6 @@ function leaveRoom(ws) {
       if (room.hostId) send(room.members.get(room.hostId).ws, { type: 'HOST_CHANGED', hostId: room.hostId });
     }
     broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: ws.userId });
-    if (room.members.size === 0) rooms.delete(ws.currentRoom);
     broadcastRoomLists();
   }
   ws.currentRoom = null;
@@ -118,12 +135,33 @@ function broadcastRoomLists() {
 }
 
 function getRoomList() {
-  return [...rooms.entries()].map(([name, room]) => ({
-    name,
+  return [...rooms.values()].map(serializeRoom);
+}
+
+function serializeRoom(room) {
+  return {
+    name: room.name,
+    lang: room.lang,
+    description: room.description,
     count: room.members.size,
     limit: room.limit,
     members: [...room.members.values()].map(({ userId, username, muted }) => ({ userId, username, muted: Boolean(muted) }))
-  }));
+  };
+}
+
+function loadRooms() {
+  try {
+    const savedRooms = JSON.parse(fs.readFileSync(roomsFile, 'utf8'));
+    return new Map(savedRooms.map((room) => [room.name, { ...room, members: new Map(), hostId: null }]));
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn('Could not load rooms.json:', error.message);
+    return new Map();
+  }
+}
+
+function saveRooms() {
+  const savedRooms = [...rooms.values()].map(({ name, lang, description, limit, createdBy }) => ({ name, lang, description, limit, createdBy }));
+  fs.writeFileSync(roomsFile, JSON.stringify(savedRooms, null, 2));
 }
 
 function broadcast(room, senderId, message) {
