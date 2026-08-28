@@ -1,9 +1,17 @@
 <?php
-require_once __DIR__ . '/../../backend/config.php';
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 
-if (empty($_SESSION['user_id'])) {
-  $redirect = $_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/indexroom.php';
-  header('Location: ../../frontend/signin.php?redirect_to=' . urlencode($redirect));
+require_once '../db.php';
+
+$isLoggedIn = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+$userName = $isLoggedIn ? ($_SESSION['full_name'] ?? 'User') : '';
+$currentPage = $_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/okay.php';
+$loginUrl = 'https://www.playmates.games/loginui.php?lang=en&redirect=' . urlencode($currentPage);
+
+if (!$isLoggedIn) {
+  header('Location: ' . $loginUrl);
   exit;
 }
 
@@ -13,7 +21,7 @@ $accountStatement->execute([$accountId]);
 $account = $accountStatement->fetch();
 if (!$account) {
   session_destroy();
-  header('Location: ../../frontend/signin.php?redirect_to=' . urlencode($_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/indexroom.php'));
+  header('Location: ' . $loginUrl);
   exit;
 }
 
@@ -1412,7 +1420,11 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
 
 <script>
   document.body.style.visibility = 'hidden';
-  const account = <?php echo json_encode(['fullName' => $account['full_name'], 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+  const userName = <?php echo json_encode($userName, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  const currentUrl = encodeURIComponent(window.location.href);
+  const loginUrl = 'https://www.playmates.games/loginui.php?lang=en&redirect=' + currentUrl;
+  const account = <?php echo json_encode(['fullName' => $userName, 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
   // ── DATA ────────────────────────────────────────────────────────────────
   let rooms = [
@@ -1556,7 +1568,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   function handleMessage(message) {
     if (message.type === 'AUTH_REQUIRED') {
       alert(message.message || 'Please sign in before joining a room.');
-      location.href = `../../frontend/signin.php?redirect_to=${encodeURIComponent(location.pathname + location.search)}`;
+      location.href = loginUrl;
     } else if (message.type === 'ROOM_JOINED') {
       userId = message.userId;
       hostId = message.hostId;
@@ -1643,7 +1655,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
       alert(message.message);
       leaveRoom(false);
     } else if (message.type === 'AUTH_REQUIRED') {
-      location.href = `/language-platform/frontend/signin.php?redirect_to=${encodeURIComponent(location.pathname + location.search)}`;
+      location.href = loginUrl;
     }
   }
 
@@ -1901,7 +1913,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
 
   // ── INIT ────────────────────────────────────────────────────────────────
   renderFilters();
-  username = account.fullName;
+  username = userName;
   authToken = account.authToken;
   usernameInput.textContent = username;
   document.body.style.visibility = 'visible';
