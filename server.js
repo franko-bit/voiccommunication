@@ -46,6 +46,7 @@ function joinRoom(ws, message) {
   ws.username = username;
   send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers, hostId: room.hostId, topic: room.topic, description: room.description, limit: room.limit });
   broadcast(room, ws.userId, { type: 'NEW_PEER', peer: { userId: ws.userId, username } });
+  broadcastRoomLists();
 }
 
 function leaveRoom(ws) {
@@ -59,6 +60,7 @@ function leaveRoom(ws) {
     }
     broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: ws.userId });
     if (room.members.size === 0) rooms.delete(ws.currentRoom);
+    broadcastRoomLists();
   }
   ws.currentRoom = null;
 }
@@ -80,6 +82,7 @@ function forwardMessage(ws, message) {
       room.members.delete(message.target);
       target.ws.currentRoom = null;
       broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: message.target });
+      broadcastRoomLists();
     }
     return;
   }
@@ -95,7 +98,21 @@ function forwardMessage(ws, message) {
 }
 
 function sendRoomList(ws) {
-  send(ws, { type: 'ROOM_LIST', rooms: [...rooms.entries()].map(([name, room]) => ({ name, count: room.members.size })) });
+  send(ws, { type: 'ROOM_LIST', rooms: getRoomList() });
+}
+
+function broadcastRoomLists() {
+  const message = { type: 'ROOM_LIST', rooms: getRoomList() };
+  wss.clients.forEach(ws => send(ws, message));
+}
+
+function getRoomList() {
+  return [...rooms.entries()].map(([name, room]) => ({
+    name,
+    count: room.members.size,
+    limit: room.limit,
+    members: [...room.members.values()].map(({ userId, username, muted }) => ({ userId, username, muted: Boolean(muted) }))
+  }));
 }
 
 function broadcast(room, senderId, message) {

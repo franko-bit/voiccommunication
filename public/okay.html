@@ -1,9 +1,34 @@
- <!doctype html>
+<?php
+require_once __DIR__ . '/../../backend/config.php';
+
+if (empty($_SESSION['user_id'])) {
+  $redirect = $_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/indexroom.php';
+  header('Location: ../../frontend/signin.php?redirect_to=' . urlencode($redirect));
+  exit;
+}
+
+$accountId = (int) $_SESSION['user_id'];
+$accountStatement = $pdo->prepare('SELECT id, full_name FROM users WHERE id = ? LIMIT 1');
+$accountStatement->execute([$accountId]);
+$account = $accountStatement->fetch();
+if (!$account) {
+  session_destroy();
+  header('Location: ../../frontend/signin.php?redirect_to=' . urlencode($_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/indexroom.php'));
+  exit;
+}
+
+$authPayload = rtrim(strtr(base64_encode(json_encode([
+  'userId' => (int) $account['id'],
+  'expiresAt' => time() + 300,
+])), '+/', '-_'), '=');
+$authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_SECRET);
+?>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voice Chat · rooms</title>
+  <title>PlayMates · Voice Rooms</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23225548'/><circle cx='16' cy='16' r='6' fill='%23f5ede6'/></svg>" />
   <style>
@@ -1263,9 +1288,9 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
     Back
   </button>
-  <div class="brand">🎙️ Voice Chat</div>
+  <div class="brand">PlayMates Voice Rooms</div>
   <div class="header-right">
-    <input id="username" type="text" value="Guest" placeholder="Your name">
+    <span id="username" class="account-name">Sign in required</span>
     <button class="btn" id="create-btn">+ Create</button>
     <div class="status" id="connection-status">● Connecting...</div>
   </div>
@@ -1386,6 +1411,9 @@
 </div>
 
 <script>
+  document.body.style.visibility = 'hidden';
+  const account = <?php echo json_encode(['fullName' => $account['full_name'], 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+
   // ── DATA ────────────────────────────────────────────────────────────────
   let rooms = [
     { id: '1', name: 'English Lounge', lang: 'English', desc: 'Casual English practice & conversation', count: 0, limit: 10, members: [] },
@@ -1396,7 +1424,8 @@
     { id: '6', name: 'Italian Studio', lang: 'Italian', desc: 'Learn Italian through conversation', count: 0, limit: 8, members: [] },
   ];
 
-  let username = 'Guest';
+  let username = '';
+  let authToken = '';
   let activeLang = 'all';
   let currentRoom = null;
   let roomMessages = [];
@@ -1509,7 +1538,7 @@
 
   function connect() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    socket = new WebSocket(`${protocol}//${location.host}`);
+    socket = new WebSocket('wss://voice-chat-pro.onrender.com');
     socket.addEventListener('open', () => {
       connectionStatus.textContent = '● Online';
       send({ type: 'GET_ROOMS' });
@@ -1525,7 +1554,10 @@
   }
 
   function handleMessage(message) {
-    if (message.type === 'ROOM_JOINED') {
+    if (message.type === 'AUTH_REQUIRED') {
+      alert(message.message || 'Please sign in before joining a room.');
+      location.href = `../../frontend/signin.php?redirect_to=${encodeURIComponent(location.pathname + location.search)}`;
+    } else if (message.type === 'ROOM_JOINED') {
       userId = message.userId;
       hostId = message.hostId;
       featuredUserId = userId;
@@ -1610,6 +1642,8 @@
     } else if (message.type === 'ROOM_ERROR') {
       alert(message.message);
       leaveRoom(false);
+    } else if (message.type === 'AUTH_REQUIRED') {
+      location.href = `/language-platform/frontend/signin.php?redirect_to=${encodeURIComponent(location.pathname + location.search)}`;
     }
   }
 
@@ -1748,7 +1782,7 @@
       return;
     }
     currentRoom = room;
-    username = usernameInput.value.trim() || 'Anonymous';
+    username = usernameInput.textContent.trim();
     history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room.name)}`);
     directory.style.display = 'none';
     roomView.style.display = 'block';
@@ -1756,7 +1790,7 @@
     mainBackBtn.style.display = 'flex';
     document.querySelector('.header-right').style.display = 'none';
     roomControls.style.display = 'flex';
-    send({ type: 'JOIN_ROOM', room: room.name, username, limit: room.limit });
+    send({ type: 'JOIN_ROOM', room: room.name, authToken, limit: room.limit });
   }
 
   // ── LEAVE ROOM ──────────────────────────────────────────────────────────
@@ -1788,10 +1822,6 @@
   }
 
   // ── EVENTS ──────────────────────────────────────────────────────────────
-  usernameInput.addEventListener('change', () => {
-    username = usernameInput.value.trim() || 'Guest';
-  });
-
   createBtn.addEventListener('click', () => createModal.classList.add('open'));
   document.getElementById('create-cancel').addEventListener('click', () => createModal.classList.remove('open'));
   createForm.addEventListener('submit', e => {
@@ -1871,6 +1901,10 @@
 
   // ── INIT ────────────────────────────────────────────────────────────────
   renderFilters();
+  username = account.fullName;
+  authToken = account.authToken;
+  usernameInput.textContent = username;
+  document.body.style.visibility = 'visible';
   renderRooms();
   connect();
 </script>
