@@ -46,10 +46,18 @@
       color: var(--text-primary);
       letter-spacing: -0.3px;
     }
+    #main-back-btn {
+      display: none;
+    }
     .header-right {
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+    .room-controls {
+      display: none;
+      align-items: center;
+      gap: 6px;
     }
     .header-right input {
       border-radius: 16px;
@@ -78,6 +86,7 @@
       cursor: pointer;
       font-family: 'Inter', sans-serif;
       transition: all var(--transition);
+      white-space: nowrap;
     }
     .btn:hover {
       background: #00432d;
@@ -89,6 +98,7 @@
       background: #e8f4e8;
       color: #0d6b2c;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     /* ── CONTENT WRAPPER ──────────────────────────────────────────────────── */
@@ -140,6 +150,11 @@
       flex: 1;
       overflow: auto;
       align-content: start;
+    }
+    @media (min-width: 1024px) {
+      .rooms-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
     .room-card {
       background: var(--bg);
@@ -230,26 +245,6 @@
       grid-template-rows: 1fr;
       height: 100%;
       gap: 0;
-    }
-    @media (max-width: 920px) {
-      .app-grid {
-        grid-template-columns: 1fr;
-      }
-      .sidebar {
-        display: none !important;
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 300px;
-        border-left: 1px solid var(--border);
-        background: var(--bg);
-        z-index: 999;
-        box-shadow: -4px 0 12px rgba(0,0,0,0.05);
-      }
-      .sidebar.open {
-        display: flex !important;
-      }
     }
 
     /* main area (participants) */
@@ -433,6 +428,9 @@
     .chat-form button:hover {
       background: #00432d;
     }
+    #audio-container {
+      display: none;
+    }
 
     .sidebar-icons {
       display: flex;
@@ -459,6 +457,9 @@
     .sidebar-icon-btn:hover {
       border-color: var(--text-secondary);
       background: var(--bg-secondary);
+    }
+    #close-chat-btn {
+      display: none;
     }
 
     /* topbar inside room view */
@@ -527,15 +528,16 @@
       background: #fee;
       border-color: #f88;
     }
-    #chat-btn {
-      display: none;
+    #leave-btn {
+      width: auto;
+      padding: 0 10px;
+      gap: 6px;
     }
-    @media (max-width: 920px) {
-      #chat-btn {
-        display: flex !important;
-      }
+    #invite-btn {
+      width: auto;
+      padding: 0 10px;
+      gap: 6px;
     }
-
     /* ── MODALS ───────────────────────────────────────────────────────────── */
     .modal-overlay {
       display: none;
@@ -630,17 +632,251 @@
     .modal-actions .save:hover {
       background: #00432d;
     }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       MOBILE — tablet / narrow desktop: switch room view to single column
+       ══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 920px) {
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none !important;
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: min(300px, 88vw);
+        border-left: 1px solid var(--border);
+        background: var(--bg);
+        z-index: 999;
+        box-shadow: -4px 0 12px rgba(0,0,0,0.05);
+      }
+      .sidebar.open {
+        display: flex !important;
+      }
+      #close-chat-btn {
+        display: flex;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       MOBILE — phone: tighten sizing/spacing so density matches desktop
+       ══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      /* header */
+      .header {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .brand {
+        font-size: 15px;
+      }
+      .header-right {
+        gap: 6px;
+      }
+      .header-right input {
+        width: 84px;
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 14px;
+      }
+      .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 14px;
+      }
+      .status {
+        display: none; /* redundant on small screens, saves space */
+      }
+
+      /* directory */
+      #directory {
+        padding: 10px;
+        gap: 10px;
+      }
+      .filters {
+        gap: 6px;
+      }
+      .chip {
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 13px;
+      }
+      .rooms-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .room-card {
+        padding: 12px;
+        gap: 8px;
+        min-height: auto;
+      }
+      .room-name {
+        font-size: 14px;
+      }
+      .room-lang {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+      .room-desc {
+        font-size: 12px;
+      }
+      .room-bottom {
+        padding-top: 8px;
+      }
+      .room-members {
+        font-size: 11px;
+      }
+      .join-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+
+      /* room topbar */
+      .room-topbar {
+        padding: 0 8px;
+        height: 42px;
+        gap: 4px;
+      }
+      .back-link {
+        font-size: 13px;
+        padding: 5px 6px 5px 2px;
+      }
+      .back-link svg {
+        width: 16px;
+        height: 16px;
+      }
+      .topbar-right {
+        gap: 4px;
+      }
+      .icon-btn {
+        width: 30px;
+        height: 30px;
+      }
+      .icon-btn svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      /* participants */
+      .participants-area {
+        padding: 10px 8px;
+      }
+      .participant-grid {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+      }
+      .participant-card {
+        min-height: 84px;
+        padding: 4px;
+        gap: 2px;
+        border-radius: 6px;
+      }
+      .participant-avatar {
+        font-size: 17px;
+        width: 32px;
+        height: 32px;
+      }
+      .participant-name {
+        font-size: 11px;
+      }
+      .participant-status {
+        font-size: 9px;
+      }
+      .bottom-info {
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+
+      /* sidebar / chat overlay */
+      .sidebar {
+        width: 100vw;
+      }
+      .sidebar-chat {
+        padding: 10px;
+      }
+      .sidebar-title {
+        font-size: 10px;
+        margin-bottom: 8px;
+      }
+      .chat-message {
+        font-size: 12px;
+        padding: 6px 9px;
+      }
+      .chat-form input {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .chat-form button {
+        font-size: 15px;
+        padding: 0 12px;
+      }
+      .sidebar-icons {
+        padding: 8px 10px;
+      }
+      .sidebar-icon-btn {
+        width: 28px;
+        height: 28px;
+      }
+
+      /* modal */
+      .modal {
+        padding: 16px;
+        max-width: 300px;
+      }
+      .modal h2 {
+        font-size: 15px;
+      }
+      .modal .subtitle {
+        font-size: 11px;
+        margin-bottom: 12px;
+      }
+      .modal-field {
+        margin-bottom: 10px;
+      }
+      .modal-field input,
+      .modal-field textarea {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+      .modal-actions button {
+        padding: 7px 12px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<div class="header">
-  <div class="brand">Voice Chat</div>
+<div class="header" id="main-header">
+  <button class="back-link" id="main-back-btn" title="Back" aria-label="Back">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </button>
   <div class="header-right">
     <input id="username" type="text" value="Guest" placeholder="Your name">
     <button class="btn" id="create-btn">+ Create</button>
-    <div class="status">● Online</div>
+    <div class="status" id="connection-status">● Connecting...</div>
+  </div>
+  <div class="room-controls" id="room-controls">
+    <button class="icon-btn active" id="mute-btn" title="Mute" aria-label="Mute">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="icon-btn active" id="speaker-btn" title="Speaker" aria-label="Speaker">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a7 7 0 0 1 0 9.9M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+    </button>
+    <button class="icon-btn" id="chat-btn" title="Chat" aria-label="Chat">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <button class="icon-btn danger" id="leave-btn" title="Leave" aria-label="Leave">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/><line x1="9" y1="12" x2="9" y2="5"/></svg>
+      <span>Leave</span>
+    </button>
+    <button class="icon-btn" id="invite-btn" title="Copy room link" aria-label="Copy room link">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      <span id="invite-label">Copy link</span>
+    </button>
   </div>
 </div>
 
@@ -658,29 +894,6 @@
     <div class="app-grid">
       <!-- left: main area -->
       <div class="main-area">
-        <!-- topbar -->
-        <div class="room-topbar">
-          <div class="topbar-left">
-            <button class="back-link" id="back-btn" title="Back">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            </button>
-          </div>
-          <div class="topbar-right">
-            <button class="icon-btn active" id="mute-btn" title="Mute">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            </button>
-            <button class="icon-btn active" id="speaker-btn" title="Speaker">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a7 7 0 0 1 0 9.9M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            </button>
-            <button class="icon-btn" id="chat-btn" title="Chat">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </button>
-            <button class="icon-btn danger" id="leave-btn" title="Leave">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/><line x1="9" y1="12" x2="9" y2="5"/></svg>
-            </button>
-          </div>
-        </div>
-
         <!-- participants -->
         <div class="participants-area">
           <div class="participant-grid" id="participants"></div>
@@ -702,16 +915,14 @@
         </div>
         <div class="sidebar-icons">
           <button class="sidebar-icon-btn" id="close-chat-btn" title="Close chat" aria-label="Close chat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6m-4.22-7.78l-4.24 4.24m-3.08 3.08l-4.24 4.24M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"/></svg>
-          </button>
-          <button class="sidebar-icon-btn" id="invite-btn" title="Invite">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </div>
     </div>
   </div>
 </div>
+<div id="audio-container" aria-hidden="true"></div>
 
 <!-- CREATE ROOM MODAL -->
 <div id="create-modal" class="modal-overlay">
@@ -768,6 +979,11 @@
   let participants = [];
   let isMuted = false;
   let isSpeaker = true;
+  let socket = null;
+  let userId = null;
+  let localStream = null;
+  const peerConnections = new Map();
+  const pendingCandidates = new Map();
 
   // ── DOM ──────────────────────────────────────────────────────────────────
   const directory = document.getElementById('directory');
@@ -777,6 +993,9 @@
   const createBtn = document.getElementById('create-btn');
   const createModal = document.getElementById('create-modal');
   const createForm = document.getElementById('create-form');
+  const mainHeader = document.getElementById('main-header');
+  const mainBackBtn = document.getElementById('main-back-btn');
+  const roomControls = document.getElementById('room-controls');
 
   const roomView = document.getElementById('room-view');
   const participantsDiv = document.getElementById('participants');
@@ -787,14 +1006,16 @@
   const sidebar = document.getElementById('room-sidebar');
   const chatBtn = document.getElementById('chat-btn');
   const closeChatBtn = document.getElementById('close-chat-btn');
-  const backBtn = document.getElementById('back-btn');
   const leaveBtn = document.getElementById('leave-btn');
   const leaveModal = document.getElementById('leave-modal');
   const stayBtn = document.getElementById('stay-btn');
   const confirmLeaveBtn = document.getElementById('confirm-leave-btn');
   const inviteBtn = document.getElementById('invite-btn');
+  const inviteLabel = document.getElementById('invite-label');
   const muteBtn = document.getElementById('mute-btn');
   const speakerBtn = document.getElementById('speaker-btn');
+  const audioContainer = document.getElementById('audio-container');
+  const connectionStatus = document.getElementById('connection-status');
 
   // ── RENDER FILTERS ──────────────────────────────────────────────────────
   function renderFilters() {
@@ -850,51 +1071,180 @@
     });
   }
 
-  // ── ENTER ROOM ──────────────────────────────────────────────────────────
-  function enterRoom(room) {
-    currentRoom = room;
-    room.count = Math.min(room.count + 1, room.limit);
-    // init participants
-    participants = [
-      { name: 'You', avatar: '🧑', status: 'speaking' },
-      { name: 'Maria', avatar: '👩', status: 'listening' },
-      { name: 'Carlos', avatar: '👨', status: 'listening' },
-      { name: 'Elena', avatar: '👱', status: 'listening' },
-      { name: 'John', avatar: '🧔', status: 'listening' },
-    ];
-    roomMessages = [
-      { sender: 'System', text: `Welcome to ${room.name}!`, own: false },
-      { sender: 'Maria', text: 'Hello everyone!', own: false },
-      { sender: 'You', text: 'Hi!', own: true },
-    ];
+  function send(message) {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+  }
 
+  function connect() {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    socket = new WebSocket(`${protocol}//${location.host}`);
+    socket.addEventListener('open', () => {
+      connectionStatus.textContent = '● Online';
+      send({ type: 'GET_ROOMS' });
+    });
+    socket.addEventListener('close', () => {
+      connectionStatus.textContent = '● Offline';
+      cleanupPeers();
+    });
+    socket.addEventListener('error', () => {
+      connectionStatus.textContent = '● Connection error';
+    });
+    socket.addEventListener('message', event => handleMessage(JSON.parse(event.data)));
+  }
+
+  function handleMessage(message) {
+    if (message.type === 'ROOM_JOINED') {
+      userId = message.userId;
+      participants = [{ userId, username }];
+      message.peers.forEach(peer => {
+        participants.push({ userId: peer.userId, username: peer.username });
+        createPeer(peer.userId, true);
+      });
+      room.count = participants.length;
+      roomMessages = [];
+      room.limit = message.limit;
+      updateRoomInfo();
+      renderParticipants();
+      connectionStatus.textContent = '● In room';
+    } else if (message.type === 'NEW_PEER') {
+      participants.push({ userId: message.peer.userId, username: message.peer.username });
+      createPeer(message.peer.userId, false);
+      room.count = participants.length;
+      updateRoomInfo();
+      renderParticipants();
+    } else if (message.type === 'PEER_LEFT') {
+      participants = participants.filter(peer => peer.userId !== message.peerId);
+      room.count = participants.length;
+      peerConnections.get(message.peerId)?.close();
+      peerConnections.delete(message.peerId);
+      document.getElementById(`audio-${message.peerId}`)?.remove();
+      updateRoomInfo();
+      renderParticipants();
+    } else if (message.type === 'CHAT_MESSAGE') {
+      roomMessages.push({ sender: message.username || 'Guest', text: message.text, own: false });
+      renderMessages();
+    } else if (message.type === 'AUDIO_LEVEL') {
+      document.querySelector(`[data-peer-id="${message.sender}"]`)?.classList.toggle('speaking', message.level > 0.5);
+    } else if (message.type === 'ROOM_LIST') {
+      rooms.forEach(room => { room.count = 0; });
+      message.rooms.forEach(activeRoom => {
+        const room = rooms.find(item => item.name === activeRoom.name);
+        if (room) room.count = activeRoom.count;
+      });
+      renderRooms();
+    } else if (message.type === 'OFFER') {
+      handleOffer(message);
+    } else if (message.type === 'ANSWER') {
+      peerConnections.get(message.sender)?.setRemoteDescription(message.answer);
+    } else if (message.type === 'CANDIDATE') {
+      handleCandidate(message);
+    } else if (message.type === 'ROOM_ERROR') {
+      alert(message.message);
+      leaveRoom(false);
+    }
+  }
+
+  function createPeer(peerId, initiator) {
+    if (peerConnections.has(peerId)) return peerConnections.get(peerId);
+    const peer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+    peer.ontrack = event => {
+      let audio = document.getElementById(`audio-${peerId}`);
+      if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = `audio-${peerId}`;
+        audio.autoplay = true;
+        audioContainer.appendChild(audio);
+      }
+      audio.srcObject = event.streams[0];
+      audio.muted = !isSpeaker;
+    };
+    peer.onicecandidate = event => {
+      if (event.candidate) send({ type: 'CANDIDATE', target: peerId, candidate: event.candidate });
+    };
+    peerConnections.set(peerId, peer);
+    if (initiator) peer.createOffer().then(offer => peer.setLocalDescription(offer)).then(() => send({ type: 'OFFER', target: peerId, offer: peer.localDescription }));
+    return peer;
+  }
+
+  async function handleOffer(message) {
+    const peer = createPeer(message.sender, false);
+    await peer.setRemoteDescription(message.offer);
+    for (const candidate of pendingCandidates.get(message.sender) || []) await peer.addIceCandidate(candidate);
+    pendingCandidates.delete(message.sender);
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+    send({ type: 'ANSWER', target: message.sender, answer: peer.localDescription });
+  }
+
+  async function handleCandidate(message) {
+    const peer = peerConnections.get(message.sender);
+    if (!peer) return;
+    if (peer.remoteDescription) await peer.addIceCandidate(message.candidate);
+    else pendingCandidates.set(message.sender, [...(pendingCandidates.get(message.sender) || []), message.candidate]);
+  }
+
+  function cleanupPeers() {
+    peerConnections.forEach(peer => peer.close());
+    peerConnections.clear();
+    pendingCandidates.clear();
+    audioContainer.replaceChildren();
+  }
+
+  // ── ENTER ROOM ──────────────────────────────────────────────────────────
+  async function enterRoom(room) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      alert('The server is not connected yet.');
+      return;
+    }
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      alert('Microphone access is required to join a room.');
+      return;
+    }
+    currentRoom = room;
+    username = usernameInput.value.trim() || 'Anonymous';
+    history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room.name)}`);
     directory.style.display = 'none';
     roomView.style.display = 'block';
-    updateRoomInfo();
-    renderParticipants();
-    renderMessages();
+    mainHeader.style.display = 'flex';
+    mainBackBtn.style.display = 'flex';
+    document.querySelector('.header-right').style.display = 'none';
+    roomControls.style.display = 'flex';
+    send({ type: 'JOIN_ROOM', room: room.name, username, limit: room.limit });
   }
 
   // ── RENDER PARTICIPANTS ────────────────────────────────────────────────
   function renderParticipants() {
     participantsDiv.innerHTML = participants.map(p => `
-      <div class="participant-card">
-        <div class="participant-avatar">${p.avatar}</div>
-        <div class="participant-name">${p.name}</div>
-        <div class="participant-status"><span class="status-dot"></span> ${p.status}</div>
+      <div class="participant-card" data-peer-id="${p.userId}">
+        <div class="participant-avatar">${escapeHtml(p.username.slice(0, 2).toUpperCase())}</div>
+        <div class="participant-name">${escapeHtml(p.username)}${p.userId === userId ? ' (You)' : ''}</div>
+        <div class="participant-status"><span class="status-dot"></span> ${p.muted ? 'Muted' : 'Connected'}</div>
       </div>
     `).join('');
   }
 
   // ── RENDER MESSAGES ──────────────────────────────────────────────────────
   function renderMessages() {
-    messagesDiv.innerHTML = roomMessages.map(m => `
-      <div class="chat-message ${m.own ? 'own' : ''}">
-        ${!m.own ? `<strong>${m.sender}</strong>` : ''}
-        ${m.text}
-      </div>
-    `).join('');
+    messagesDiv.replaceChildren();
+    roomMessages.forEach(message => {
+      const item = document.createElement('div');
+      item.className = `chat-message ${message.own ? 'own' : ''}`;
+      if (!message.own) {
+        const sender = document.createElement('strong');
+        sender.textContent = message.sender;
+        item.appendChild(sender);
+      }
+      item.appendChild(document.createTextNode(message.text));
+      messagesDiv.appendChild(item);
+    });
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
   }
 
   // ── UPDATE ROOM INFO ─────────────────────────────────────────────────────
@@ -905,15 +1255,25 @@
   }
 
   // ── LEAVE ROOM ─────────────────────────────────────────────────────────
-  function leaveRoom() {
+  function leaveRoom(notify = true) {
+    if (notify) send({ type: 'LEAVE_ROOM' });
+    cleanupPeers();
+    localStream?.getTracks().forEach(track => track.stop());
+    localStream = null;
+    userId = null;
     if (currentRoom) {
       currentRoom.count = Math.max(currentRoom.count - 1, 0);
       currentRoom = null;
     }
     roomMessages = [];
     participants = [];
+    history.replaceState(null, '', location.pathname);
     directory.style.display = 'flex';
     roomView.style.display = 'none';
+    mainHeader.style.display = 'flex';
+    mainBackBtn.style.display = 'none';
+    document.querySelector('.header-right').style.display = 'flex';
+    roomControls.style.display = 'none';
     renderRooms();
     leaveModal.classList.remove('open');
     sidebar.classList.remove('open');
@@ -941,30 +1301,42 @@
   createModal.addEventListener('click', e => { if (e.target === createModal) createModal.classList.remove('open'); });
 
   // back
-  backBtn.addEventListener('click', () => {
-    if (window.innerWidth <= 920 && sidebar.classList.contains('open')) {
-      sidebar.classList.remove('open');
-    } else {
-      leaveRoom();
-    }
-  });
+  mainBackBtn.addEventListener('click', leaveRoom);
 
   // leave
   leaveBtn.addEventListener('click', () => leaveModal.classList.add('open'));
   stayBtn.addEventListener('click', () => leaveModal.classList.remove('open'));
   confirmLeaveBtn.addEventListener('click', leaveRoom);
 
-  // invite
-  inviteBtn.addEventListener('click', () => alert('Share: ' + window.location.href));
+  // copy room link
+  inviteBtn.addEventListener('click', async () => {
+    if (!currentRoom) return;
+    const roomLink = `${location.origin}${location.pathname}?room=${encodeURIComponent(currentRoom.name)}`;
+    try {
+      await navigator.clipboard.writeText(roomLink);
+      inviteLabel.textContent = 'Copied';
+      inviteBtn.title = 'Copied';
+      inviteBtn.setAttribute('aria-label', 'Copied');
+      setTimeout(() => {
+        inviteLabel.textContent = 'Copy link';
+        inviteBtn.title = 'Copy room link';
+        inviteBtn.setAttribute('aria-label', 'Copy room link');
+      }, 1500);
+    } catch {
+      window.prompt('Copy this room link:', roomLink);
+    }
+  });
 
   // mute / speaker
   muteBtn.addEventListener('click', () => {
     isMuted = !isMuted;
+    localStream?.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
     muteBtn.classList.toggle('active', !isMuted);
   });
   speakerBtn.addEventListener('click', () => {
     isSpeaker = !isSpeaker;
     speakerBtn.classList.toggle('active', isSpeaker);
+    audioContainer.querySelectorAll('audio').forEach(audio => { audio.muted = !isSpeaker; });
   });
 
   // chat toggle (mobile)
@@ -972,12 +1344,12 @@
     e.stopPropagation();
     sidebar.classList.remove('closed');
     sidebar.classList.toggle('open');
-      closeChatBtn.addEventListener('click', () => {
-        sidebar.classList.remove('open');
-        sidebar.classList.add('closed');
-        chatBtn.classList.remove('active');
-      });
     chatBtn.classList.toggle('active', sidebar.classList.contains('open'));
+  });
+  closeChatBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    sidebar.classList.add('closed');
+    chatBtn.classList.remove('active');
   });
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 920) {
@@ -993,19 +1365,10 @@
     e.preventDefault();
     const text = messageInput.value.trim();
     if (!text || !currentRoom) return;
+    send({ type: 'CHAT_MESSAGE', text });
     roomMessages.push({ sender: username, text, own: true });
     messageInput.value = '';
     renderMessages();
-    setTimeout(() => {
-      const names = ['Maria', 'Carlos', 'Elena', 'John'];
-      const replies = ['Great!', 'I agree!', 'Exactly!', 'Nice!', '100%'];
-      roomMessages.push({
-        sender: names[Math.floor(Math.random() * names.length)],
-        text: replies[Math.floor(Math.random() * replies.length)],
-        own: false
-      });
-      renderMessages();
-    }, 600);
   });
 
   // rotate speaker
@@ -1020,6 +1383,7 @@
   // ── INIT ────────────────────────────────────────────────────────────────
   renderFilters();
   renderRooms();
+  connect();
   setInterval(rotateSpeaker, 4000);
 </script>
 </body>
