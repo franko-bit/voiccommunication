@@ -4,104 +4,160 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Voice Chat · rooms</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><circle cx='16' cy='16' r='6' fill='%23fff'/></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23225548'/><circle cx='16' cy='16' r='6' fill='%23f5ede6'/></svg>" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #ffffff;
-      --bg-secondary: #f5f5f5;
-      --text-primary: #1a1a1a;
-      --text-secondary: #666666;
-      --border: #e5e5e5;
-      --accent: #005a3c;
-      --radius: 8px;
-      --transition: 0.2s ease;
+      --sand: #f5ede6;
+      --sand-mid: #ede3d8;
+      --sand-dark: #ddd0c2;
+      --sage: #c6dfd5;
+      --sage-mid: #8bbfad;
+      --sage-dark: #3a7a68;
+      --sage-deep: #225548;
+      --lavender: #d4cfed;
+      --butter: #f5e8b0;
+      --peach: #f5d6c4;
+      --blush: #f9d8cd;
+      --ink: #1a1a18;
+      --ink-mid: #4a4845;
+      --muted: #8a8178;
+      --soft: #b8b0a5;
+      --surface: #faf8f5;
+      --border: rgba(0,0,0,0.07);
+      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-lg: 20px;
+      --transition: 0.25s cubic-bezier(.4,0,.2,1);
     }
+
     html, body {
       height: 100%;
-      font-family: 'Inter', sans-serif;
-      color: var(--text-primary);
-      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      background: var(--sand);
+      font-size: 14px;
     }
+
     body {
       display: flex;
       flex-direction: column;
     }
 
-    /* ── HEADER ────────────────────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════════════
+       HEADER
+       ═════════════════════════════════════════════════════════════════════ */
     .header {
-      padding: 12px 16px;
+      padding: 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
       flex-wrap: wrap;
-      background: var(--bg);
+      background: var(--surface);
+      backdrop-filter: blur(8px);
     }
+
     .brand {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
       letter-spacing: -0.3px;
     }
+
     #main-back-btn {
       display: none;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
     }
+
+    #main-back-btn:hover {
+      background: var(--sand-mid);
+    }
+
     .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+
     .room-controls {
       display: none;
       align-items: center;
       gap: 6px;
     }
+
     .header-right input {
-      border-radius: 16px;
-      padding: 8px 12px;
+      border-radius: 30px;
+      padding: 10px 14px;
       border: 1px solid var(--border);
-      font-size: 14px;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      width: 130px;
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      width: 140px;
       transition: all var(--transition);
-      font-family: 'Inter', sans-serif;
     }
+
     .header-right input:focus {
       outline: none;
-      border-color: var(--accent);
-      background: var(--bg);
+      border-color: var(--sage-dark);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(58, 122, 104, 0.1);
     }
+
     .btn {
-      background: var(--accent);
+      background: var(--sage-dark);
       color: #fff;
       border: none;
-      padding: 8px 14px;
-      border-radius: 16px;
+      padding: 10px 16px;
+      border-radius: 30px;
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      font-family: 'Inter', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       transition: all var(--transition);
       white-space: nowrap;
-    }
-    .btn:hover {
-      background: #00432d;
-    }
-    .status {
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 16px;
-      background: #e8f4e8;
-      color: #0d6b2c;
-      font-weight: 500;
-      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* ── CONTENT WRAPPER ──────────────────────────────────────────────────── */
+    .btn:hover {
+      background: #1a4a3f;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(58, 122, 104, 0.15);
+    }
+
+    .status {
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 30px;
+      background: rgba(198, 223, 213, 0.3);
+      color: var(--sage-dark);
+      font-weight: 600;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONTENT WRAPPER
+       ═════════════════════════════════════════════════════════════════════ */
     .content {
       flex: 1;
       overflow: hidden;
@@ -109,254 +165,433 @@
       flex-direction: column;
     }
 
-    /* ── DIRECTORY SCREEN ────────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════════════
+       DIRECTORY SCREEN
+       ═════════════════════════════════════════════════════════════════════ */
     #directory {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      padding: 16px;
+      padding: 20px;
       min-height: 0;
       height: 100%;
     }
+
     .filters {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       flex-shrink: 0;
     }
+
     .chip {
-      padding: 7px 14px;
-      border-radius: 16px;
+      padding: 8px 14px;
+      border-radius: 30px;
       border: 1px solid var(--border);
-      background: var(--bg);
+      background: var(--surface);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
     }
+
     .chip:hover {
-      border-color: var(--accent);
-      background: var(--bg-secondary);
+      border-color: var(--sage-mid);
+      background: var(--sage);
+      transform: translateY(-1px);
     }
+
     .chip.active {
-      background: var(--accent);
+      background: var(--sage-dark);
       color: #fff;
-      border-color: var(--accent);
+      border-color: var(--sage-dark);
+      font-weight: 600;
     }
+
     .rooms-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
       flex: 1;
       overflow: auto;
       align-content: start;
     }
+
     @media (min-width: 1024px) {
       .rooms-grid {
         grid-template-columns: repeat(3, 1fr);
       }
     }
+
     .room-card {
-      background: var(--bg);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 18px;
       cursor: pointer;
       transition: all var(--transition);
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      min-height: 160px;
+      gap: 14px;
+      min-height: 180px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
+
     .room-card:hover {
-      border-color: var(--accent);
-      background: var(--bg-secondary);
+      border-color: var(--sage-mid);
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(58, 122, 104, 0.1);
     }
+
     .room-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 8px;
     }
+
     .room-name {
+      font-family: 'DM Serif Display', serif;
       font-size: 16px;
-      font-weight: 600;
-      color: var(--text-primary);
+      font-weight: 700;
+      color: var(--ink);
       letter-spacing: -0.2px;
       flex: 1;
     }
+
     .room-lang {
-      background: var(--border);
-      color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
+      background: var(--sand-dark);
+      color: var(--ink-mid);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 18px;
       flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
+
     .room-desc {
       font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.4;
+      color: var(--muted);
+      line-height: 1.5;
       flex: 1;
     }
+
     .room-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 10px;
+      padding-top: 12px;
       border-top: 1px solid var(--border);
       margin-top: auto;
     }
+
     .room-members {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--muted);
       font-weight: 500;
     }
+
     .join-btn {
-      background: var(--accent);
+      background: var(--sage-dark);
       color: #fff;
       border: none;
-      padding: 6px 12px;
-      border-radius: 14px;
+      padding: 8px 14px;
+      border-radius: 25px;
       font-weight: 600;
       font-size: 12px;
       cursor: pointer;
       transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
     }
+
     .join-btn:hover {
-      background: #00432d;
+      background: #1a4a3f;
+      transform: translateY(-1px);
     }
+
     .join-btn.full {
-      background: #e5e5e5;
-      color: var(--text-secondary);
+      background: var(--sand-mid);
+      color: var(--muted);
       cursor: default;
     }
 
-    /* ── ROOM VIEW (grid layout with sidebar) ───────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════════════
+       ROOM VIEW (grid layout with sidebar)
+       ═════════════════════════════════════════════════════════════════════ */
     #room-view {
       display: none;
       height: 100%;
-      background: var(--bg);
+      background: var(--sand);
     }
+
     .app-grid {
       display: grid;
-      grid-template-columns: 1fr 300px;
+      grid-template-columns: 1fr 320px;
       grid-template-rows: 1fr;
       height: 100%;
       gap: 0;
     }
 
-    /* main area (participants) */
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+    }
+
+    .back-link:hover {
+      background: var(--sand-mid);
+    }
+
+    .room-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+      padding: 0;
+    }
+
+    .icon-btn:hover {
+      background: var(--sand-mid);
+      border-color: var(--muted);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.active {
+      background: var(--sage-dark);
+      color: #fff;
+      border-color: var(--sage-dark);
+    }
+
+    .icon-btn.danger:hover {
+      background: #fee;
+      border-color: #c88;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    #leave-btn, #invite-btn {
+      width: auto;
+      padding: 0 12px;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    #leave-btn span, #invite-btn span {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      #leave-btn span, #invite-btn span {
+        display: inline;
+      }
+    }
+
+    /* MAIN AREA */
     .main-area {
-      background: var(--bg);
+      background: var(--sand);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       min-height: 0;
+      grid-column: 1;
+      grid-row: 2;
     }
+
     .participants-area {
       flex: 1;
       overflow: auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px 12px;
-      background: var(--bg);
+      padding: 20px;
+      background: var(--sand);
     }
     .participant-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       align-content: center;
     }
+
     .participant-card {
       aspect-ratio: 16 / 9;
-      border-radius: 6px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      background: var(--bg-secondary);
+      background: var(--surface);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 8px;
       overflow: hidden;
-      padding: 6px;
-      min-height: 120px;
+      padding: 12px;
+      min-height: 140px;
       transition: all var(--transition);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
+
     .participant-card:hover {
-      border-color: var(--accent);
-      background: #fafafa;
+      border-color: var(--sage-mid);
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(58, 122, 104, 0.08);
     }
+
+    .participant-card.speaking {
+      border-color: var(--sage-dark);
+      background: rgba(198, 223, 213, 0.15);
+    }
+
     .participant-avatar {
-      font-size: 26px;
-      width: 48px;
-      height: 48px;
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: var(--border);
+      background: linear-gradient(135deg, var(--sage), var(--butter));
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      color: #fff;
     }
+
     .participant-name {
-      font-weight: 500;
+      font-weight: 600;
       font-size: 13px;
-      color: var(--text-primary);
+      color: var(--ink);
       text-align: center;
     }
+
     .participant-status {
       font-size: 11px;
-      color: var(--text-secondary);
+      color: var(--muted);
       display: flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
+      font-weight: 500;
     }
+
+    .participant-actions {
+      display: none;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .participant-card.host .participant-actions {
+      display: flex;
+    }
+
+    .participant-actions button {
+      padding: 3px 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    .participant-actions button:hover {
+      color: var(--sage-dark);
+      border-color: var(--sage-dark);
+    }
+
+    .participant-actions .remove-participant:hover {
+      color: #b33a2b;
+      border-color: #b33a2b;
+    }
+
     .status-dot {
-      width: 4px;
-      height: 4px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
-      background: #52c41a;
+      background: var(--sage-mid);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
     .bottom-info {
-      background: var(--bg);
+      background: var(--surface);
       border-top: 1px solid var(--border);
-      padding: 8px 12px;
+      padding: 10px 14px;
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--muted);
       font-weight: 500;
       text-align: center;
       flex-shrink: 0;
     }
 
-    /* sidebar */
+    /* SIDEBAR */
     .sidebar {
-      background: var(--bg);
+      background: var(--surface);
       border-left: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      grid-column: 2;
+      grid-row: 2;
     }
+
     .sidebar.closed { display: none !important; }
+
     .sidebar-chat {
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      padding: 12px;
+      padding: 14px;
     }
+
     .sidebar-title {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 12px;
     }
+
     .chat-box {
       display: flex;
       flex-direction: column;
@@ -364,70 +599,92 @@
       min-height: 0;
       gap: 8px;
     }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       padding-right: 2px;
     }
+
     .chat-message {
-      font-size: 13px;
-      padding: 7px 10px;
-      border-radius: 6px;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      line-height: 1.4;
+      font-size: 12px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--sand);
+      color: var(--ink);
+      line-height: 1.5;
       word-wrap: break-word;
+      border: 1px solid var(--border);
     }
+
     .chat-message.own {
-      background: var(--accent);
-      color: white;
+      background: var(--sage-dark);
+      color: #fff;
       font-weight: 500;
       align-self: flex-end;
       max-width: 90%;
+      border: none;
     }
+
     .chat-message strong {
-      color: var(--text-secondary);
+      color: var(--muted);
       display: block;
       font-size: 10px;
-      margin-bottom: 3px;
-      font-weight: 600;
+      margin-bottom: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
+
     .chat-form {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
     }
+
     .chat-form input {
       flex: 1;
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 10px 14px;
       border: 1px solid var(--border);
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand);
+      color: var(--ink);
+      transition: all var(--transition);
     }
+
     .chat-form input:focus {
       outline: none;
-      border-color: var(--accent);
-      background: var(--bg);
+      border-color: var(--sage-dark);
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(58, 122, 104, 0.1);
     }
+
     .chat-form button {
-      background: var(--accent);
-      color: white;
+      background: var(--sage-dark);
+      color: #fff;
       border: none;
-      border-radius: 18px;
-      padding: 0 14px;
+      border-radius: 20px;
+      width: 36px;
+      height: 36px;
       font-size: 16px;
       cursor: pointer;
       transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
+
     .chat-form button:hover {
-      background: #00432d;
+      background: #1a4a3f;
+      transform: translateY(-1px);
     }
+
     #audio-container {
       display: none;
     }
@@ -440,13 +697,14 @@
       border-top: 1px solid var(--border);
       flex-shrink: 0;
     }
+
     .sidebar-icon-btn {
       width: 32px;
       height: 32px;
-      border-radius: 6px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text-primary);
+      background: var(--surface);
+      color: var(--ink);
       font-size: 14px;
       cursor: pointer;
       display: flex;
@@ -454,394 +712,368 @@
       justify-content: center;
       transition: all var(--transition);
     }
+
     .sidebar-icon-btn:hover {
-      border-color: var(--text-secondary);
-      background: var(--bg-secondary);
+      border-color: var(--muted);
+      background: var(--sand);
     }
+
     #close-chat-btn {
       display: none;
     }
 
-    /* topbar inside room view */
-    .room-topbar {
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      padding: 0 12px;
-      height: 48px;
-      flex-shrink: 0;
-    }
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .back-link {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 6px 8px 6px 4px;
-      border-radius: 6px;
-      transition: all var(--transition);
-    }
-    .back-link:hover {
-      background: var(--bg-secondary);
-    }
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text-primary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--transition);
-    }
-    .icon-btn:hover {
-      background: var(--bg-secondary);
-      border-color: var(--text-secondary);
-    }
-    .icon-btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .icon-btn.danger:hover {
-      background: #fee;
-      border-color: #f88;
-    }
-    #leave-btn {
-      width: auto;
-      padding: 0 10px;
-      gap: 6px;
-    }
-    #invite-btn {
-      width: auto;
-      padding: 0 10px;
-      gap: 6px;
-    }
-    /* ── MODALS ───────────────────────────────────────────────────────────── */
+    /* ═══════════════════════════════════════════════════════════════════════
+       MODALS
+       ═════════════════════════════════════════════════════════════════════ */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.25);
-      backdrop-filter: blur(2px);
+      background: rgba(26, 26, 24, 0.45);
+      backdrop-filter: blur(4px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
       padding: 16px;
+      animation: fadeIn 0.2s ease;
     }
+
     .modal-overlay.open {
       display: flex;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     .modal {
-      background: var(--bg);
-      border-radius: 6px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
       border: 1px solid var(--border);
-      padding: 20px;
-      max-width: 340px;
+      padding: 24px;
+      max-width: 380px;
       width: 100%;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+      animation: slideUp 0.3s cubic-bezier(.4,0,.2,1);
     }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     .modal h2 {
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text-primary);
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--ink);
+      letter-spacing: -0.2px;
     }
+
     .modal .subtitle {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--muted);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .modal-field {
       margin-bottom: 14px;
     }
-    .modal-field {
-      margin-bottom: 12px;
-    }
+
     .modal-field label {
       display: block;
       font-size: 12px;
       font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
+
     .modal-field input,
     .modal-field textarea {
       width: 100%;
-      border-radius: 8px;
-      padding: 9px 12px;
+      border-radius: var(--radius);
+      padding: 11px 14px;
       border: 1px solid var(--border);
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand);
+      color: var(--ink);
       resize: vertical;
+      transition: all var(--transition);
     }
+
     .modal-field input:focus,
     .modal-field textarea:focus {
       outline: none;
-      border-color: var(--accent);
-      background: var(--bg);
+      border-color: var(--sage-dark);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(58, 122, 104, 0.1);
     }
+
     .modal-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 14px;
+      gap: 10px;
+      margin-top: 16px;
       justify-content: flex-end;
     }
+
     .modal-actions button {
-      padding: 8px 14px;
-      border-radius: 14px;
+      padding: 10px 16px;
+      border-radius: 25px;
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      border: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif;
+      border: none;
       transition: all var(--transition);
     }
+
     .modal-actions .cancel {
-      background: var(--bg);
-      color: var(--text-primary);
-    }
-    .modal-actions .cancel:hover {
-      background: var(--bg-secondary);
-    }
-    .modal-actions .save {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .modal-actions .save:hover {
-      background: #00432d;
+      background: var(--sand);
+      color: var(--ink);
+      border: 1px solid var(--border);
     }
 
-    /* ══════════════════════════════════════════════════════════════════════
-       MOBILE — tablet / narrow desktop: switch room view to single column
-       ══════════════════════════════════════════════════════════════════════ */
+    .modal-actions .cancel:hover {
+      background: var(--sand-mid);
+      transform: translateY(-1px);
+    }
+
+    .modal-actions .save {
+      background: var(--sage-dark);
+      color: #fff;
+    }
+
+    .modal-actions .save:hover {
+      background: #1a4a3f;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(58, 122, 104, 0.2);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       RESPONSIVE — tablet / narrow
+       ═════════════════════════════════════════════════════════════════════ */
     @media (max-width: 920px) {
       .app-grid {
         grid-template-columns: 1fr;
       }
+
       .sidebar {
-        display: none !important;
         position: fixed;
         right: 0;
         top: 0;
         bottom: 0;
-        width: min(300px, 88vw);
+        width: min(320px, 88vw);
         border-left: 1px solid var(--border);
-        background: var(--bg);
+        background: var(--surface);
         z-index: 999;
-        box-shadow: -4px 0 12px rgba(0,0,0,0.05);
+        box-shadow: -8px 0 16px rgba(0, 0, 0, 0.08);
+        grid-column: unset;
+        grid-row: unset;
+        transform: translateX(100%);
+        transition: transform var(--transition);
       }
+
       .sidebar.open {
-        display: flex !important;
+        transform: translateX(0);
       }
+
       #close-chat-btn {
         display: flex;
       }
     }
 
-    /* ══════════════════════════════════════════════════════════════════════
-       MOBILE — phone: tighten sizing/spacing so density matches desktop
-       ══════════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════════════════
+       RESPONSIVE — phone
+       ═════════════════════════════════════════════════════════════════════ */
     @media (max-width: 640px) {
-      /* header */
       .header {
-        padding: 8px 12px;
+        padding: 10px 12px;
         gap: 8px;
       }
+
       .brand {
-        font-size: 15px;
+        font-size: 16px;
       }
+
       .header-right {
         gap: 6px;
       }
+
       .header-right input {
-        width: 84px;
-        padding: 6px 10px;
-        font-size: 13px;
-        border-radius: 14px;
-      }
-      .btn {
-        padding: 6px 10px;
+        width: 100px;
+        padding: 7px 11px;
         font-size: 12px;
-        border-radius: 14px;
-      }
-      .status {
-        display: none; /* redundant on small screens, saves space */
       }
 
-      /* directory */
-      #directory {
-        padding: 10px;
-        gap: 10px;
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
       }
+
+      .status {
+        display: none;
+      }
+
+      #directory {
+        padding: 12px;
+        gap: 12px;
+      }
+
       .filters {
         gap: 6px;
       }
+
       .chip {
-        padding: 5px 10px;
+        padding: 6px 12px;
         font-size: 12px;
-        border-radius: 13px;
       }
+
       .rooms-grid {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 10px;
       }
+
       .room-card {
-        padding: 12px;
-        gap: 8px;
+        padding: 14px;
+        gap: 10px;
         min-height: auto;
       }
+
       .room-name {
         font-size: 14px;
       }
+
       .room-lang {
-        font-size: 10px;
-        padding: 3px 8px;
+        font-size: 9px;
+        padding: 4px 8px;
       }
+
       .room-desc {
         font-size: 12px;
       }
+
       .room-bottom {
-        padding-top: 8px;
+        padding-top: 10px;
       }
-      .room-members {
-        font-size: 11px;
-      }
+
       .join-btn {
-        padding: 5px 10px;
+        padding: 6px 12px;
         font-size: 11px;
       }
 
-      /* room topbar */
-      .room-topbar {
-        padding: 0 8px;
-        height: 42px;
-        gap: 4px;
-      }
-      .back-link {
-        font-size: 13px;
-        padding: 5px 6px 5px 2px;
-      }
-      .back-link svg {
-        width: 16px;
-        height: 16px;
-      }
-      .topbar-right {
-        gap: 4px;
-      }
       .icon-btn {
-        width: 30px;
-        height: 30px;
-      }
-      .icon-btn svg {
-        width: 15px;
-        height: 15px;
-      }
-
-      /* participants */
-      .participants-area {
-        padding: 10px 8px;
-      }
-      .participant-grid {
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-        gap: 6px;
-      }
-      .participant-card {
-        min-height: 84px;
-        padding: 4px;
-        gap: 2px;
-        border-radius: 6px;
-      }
-      .participant-avatar {
-        font-size: 17px;
         width: 32px;
         height: 32px;
       }
+
+      .icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .participants-area {
+        padding: 12px;
+      }
+
+      .participant-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+      }
+
+      .participant-card {
+        min-height: 100px;
+        padding: 8px;
+        gap: 4px;
+      }
+
+      .participant-avatar {
+        font-size: 18px;
+        width: 42px;
+        height: 42px;
+      }
+
       .participant-name {
         font-size: 11px;
       }
+
       .participant-status {
-        font-size: 9px;
+        font-size: 10px;
       }
+
       .bottom-info {
-        padding: 6px 8px;
+        padding: 8px 10px;
         font-size: 11px;
       }
 
-      /* sidebar / chat overlay */
       .sidebar {
         width: 100vw;
       }
+
       .sidebar-chat {
-        padding: 10px;
+        padding: 12px;
       }
+
       .sidebar-title {
         font-size: 10px;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
       }
+
       .chat-message {
         font-size: 12px;
-        padding: 6px 9px;
+        padding: 8px 10px;
       }
+
       .chat-form input {
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 12px;
       }
+
       .chat-form button {
-        font-size: 15px;
-        padding: 0 12px;
+        width: 32px;
+        height: 32px;
       }
+
       .sidebar-icons {
         padding: 8px 10px;
       }
+
       .sidebar-icon-btn {
         width: 28px;
         height: 28px;
       }
 
-      /* modal */
       .modal {
-        padding: 16px;
-        max-width: 300px;
+        padding: 18px;
+        max-width: 320px;
       }
+
       .modal h2 {
-        font-size: 15px;
+        font-size: 16px;
       }
+
       .modal .subtitle {
         font-size: 11px;
+        margin-bottom: 14px;
+      }
+
+      .modal-field {
         margin-bottom: 12px;
       }
-      .modal-field {
-        margin-bottom: 10px;
-      }
+
       .modal-field input,
       .modal-field textarea {
-        padding: 7px 10px;
-        font-size: 13px;
+        padding: 9px 12px;
+        font-size: 12px;
       }
+
       .modal-actions button {
-        padding: 7px 12px;
+        padding: 8px 14px;
         font-size: 12px;
       }
     }
@@ -853,7 +1085,9 @@
 <div class="header" id="main-header">
   <button class="back-link" id="main-back-btn" title="Back" aria-label="Back">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back
   </button>
+  <div class="brand">🎙️ Voice Chat</div>
   <div class="header-right">
     <input id="username" type="text" value="Guest" placeholder="Your name">
     <button class="btn" id="create-btn">+ Create</button>
@@ -889,22 +1123,21 @@
     <div class="rooms-grid" id="rooms-grid"></div>
   </div>
 
-  <!-- ROOM VIEW (with grid + sidebar) -->
+  <!-- ROOM VIEW -->
   <div id="room-view">
     <div class="app-grid">
-      <!-- left: main area -->
+      <!-- MAIN AREA -->
       <div class="main-area">
-        <!-- participants -->
         <div class="participants-area">
           <div class="participant-grid" id="participants"></div>
         </div>
         <div class="bottom-info" id="room-info">Loading...</div>
       </div>
 
-      <!-- right: sidebar -->
+      <!-- SIDEBAR -->
       <div class="sidebar" id="room-sidebar">
         <div class="sidebar-chat">
-          <div class="sidebar-title">Chat</div>
+          <div class="sidebar-title">💬 Chat</div>
           <div class="chat-box">
             <div class="chat-messages" id="messages"></div>
             <form class="chat-form" id="chat-form">
@@ -922,6 +1155,7 @@
     </div>
   </div>
 </div>
+
 <div id="audio-container" aria-hidden="true"></div>
 
 <!-- CREATE ROOM MODAL -->
@@ -931,20 +1165,24 @@
     <div class="subtitle">Start a new voice chat room</div>
     <form id="create-form">
       <div class="modal-field">
-        <label>Name</label>
-        <input type="text" id="new-room-name" placeholder="Room name" value="My Room">
+        <label>Room Name</label>
+        <input type="text" id="new-room-name" placeholder="What should we call this?" value="My Room">
       </div>
       <div class="modal-field">
         <label>Language</label>
-        <input type="text" id="new-room-lang" placeholder="Language" value="English">
+        <input type="text" id="new-room-lang" placeholder="English, Spanish, etc." value="English">
       </div>
       <div class="modal-field">
         <label>Description</label>
-        <textarea id="new-room-desc" placeholder="What's this room about?">Practice together</textarea>
+        <textarea id="new-room-desc" placeholder="What's this room about?" rows="3">Practice together</textarea>
+      </div>
+      <div class="modal-field">
+        <label>Maximum Participants</label>
+        <input type="number" id="new-room-limit" min="2" max="20" value="6">
       </div>
       <div class="modal-actions">
         <button type="button" class="cancel" id="create-cancel">Cancel</button>
-        <button type="submit" class="save">Create</button>
+        <button type="submit" class="save">Create Room</button>
       </div>
     </form>
   </div>
@@ -954,10 +1192,10 @@
 <div id="leave-modal" class="modal-overlay">
   <div class="modal">
     <h2>Leave Room?</h2>
-    <div class="subtitle">You'll be disconnected from this room</div>
+    <div class="subtitle">You'll be disconnected from this voice chat</div>
     <div class="modal-actions">
       <button class="cancel" id="stay-btn">Cancel</button>
-      <button class="save" id="confirm-leave-btn">Leave</button>
+      <button class="save" id="confirm-leave-btn">Leave Room</button>
     </div>
   </div>
 </div>
@@ -965,11 +1203,12 @@
 <script>
   // ── DATA ────────────────────────────────────────────────────────────────
   let rooms = [
-    { id: '1', name: 'English Lounge', lang: 'English', desc: 'Casual English practice', count: 5, limit: 10 },
-    { id: '2', name: 'Spanish Cafe', lang: 'Spanish', desc: 'Spanish conversation', count: 3, limit: 8 },
-    { id: '3', name: 'French Salon', lang: 'French', desc: 'Advanced level', count: 2, limit: 6 },
-    { id: '4', name: 'German Corner', lang: 'German', desc: 'Beginner & intermediate', count: 1, limit: 6 },
-    { id: '5', name: 'Mandarin Hub', lang: 'Mandarin', desc: 'Tones & conversation', count: 4, limit: 10 },
+    { id: '1', name: 'English Lounge', lang: 'English', desc: 'Casual English practice & conversation', count: 5, limit: 10 },
+    { id: '2', name: 'Spanish Cafe', lang: 'Spanish', desc: 'Spanish conversation at all levels', count: 3, limit: 8 },
+    { id: '3', name: 'French Salon', lang: 'French', desc: 'Advanced French discussions', count: 2, limit: 6 },
+    { id: '4', name: 'German Corner', lang: 'German', desc: 'Beginner & intermediate German', count: 1, limit: 6 },
+    { id: '5', name: 'Mandarin Hub', lang: 'Mandarin', desc: 'Tones, pronunciation & dialogue', count: 4, limit: 10 },
+    { id: '6', name: 'Italian Studio', lang: 'Italian', desc: 'Learn Italian through conversation', count: 2, limit: 8 },
   ];
 
   let username = 'Guest';
@@ -981,6 +1220,7 @@
   let isSpeaker = true;
   let socket = null;
   let userId = null;
+  let hostId = null;
   let localStream = null;
   const peerConnections = new Map();
   const pendingCandidates = new Map();
@@ -996,7 +1236,6 @@
   const mainHeader = document.getElementById('main-header');
   const mainBackBtn = document.getElementById('main-back-btn');
   const roomControls = document.getElementById('room-controls');
-
   const roomView = document.getElementById('room-view');
   const participantsDiv = document.getElementById('participants');
   const messagesDiv = document.getElementById('messages');
@@ -1019,7 +1258,7 @@
 
   // ── RENDER FILTERS ──────────────────────────────────────────────────────
   function renderFilters() {
-    const langs = ['All', 'English', 'Spanish', 'French', 'German', 'Mandarin'];
+    const langs = ['All', 'English', 'Spanish', 'French', 'German', 'Mandarin', 'Italian'];
     filtersDiv.innerHTML = langs.map(lang => {
       const key = lang.toLowerCase();
       const isActive = (lang === 'All' && activeLang === 'all') || activeLang === key;
@@ -1047,7 +1286,7 @@
           </div>
           <div class="room-desc">${room.desc}</div>
           <div class="room-bottom">
-            <div class="room-members">👥 ${room.count} member${room.count !== 1 ? 's' : ''}</div>
+            <div class="room-members">👥 ${room.count}/${room.limit}</div>
             <button class="join-btn ${full ? 'full' : ''}" data-id="${room.id}">${full ? 'Full' : 'Join'}</button>
           </div>
         </div>
@@ -1087,7 +1326,7 @@
       cleanupPeers();
     });
     socket.addEventListener('error', () => {
-      connectionStatus.textContent = '● Connection error';
+      connectionStatus.textContent = '● Error';
     });
     socket.addEventListener('message', event => handleMessage(JSON.parse(event.data)));
   }
@@ -1095,9 +1334,10 @@
   function handleMessage(message) {
     if (message.type === 'ROOM_JOINED') {
       userId = message.userId;
+      hostId = message.hostId;
       participants = [{ userId, username }];
       message.peers.forEach(peer => {
-        participants.push({ userId: peer.userId, username: peer.username });
+        participants.push({ userId: peer.userId, username: peer.username, muted: peer.muted });
         createPeer(peer.userId, true);
       });
       currentRoom.count = participants.length;
@@ -1107,7 +1347,7 @@
       renderParticipants();
       connectionStatus.textContent = '● In room';
     } else if (message.type === 'NEW_PEER') {
-      participants.push({ userId: message.peer.userId, username: message.peer.username });
+      participants.push({ userId: message.peer.userId, username: message.peer.username, muted: false });
       createPeer(message.peer.userId, false);
       currentRoom.count = participants.length;
       updateRoomInfo();
@@ -1123,6 +1363,23 @@
     } else if (message.type === 'CHAT_MESSAGE') {
       roomMessages.push({ sender: message.username || 'Guest', text: message.text, own: false });
       renderMessages();
+    } else if (message.type === 'HOST_CHANGED') {
+      hostId = message.hostId;
+      renderParticipants();
+    } else if (message.type === 'PARTICIPANT_MUTED') {
+      const participant = participants.find(peer => peer.userId === message.peerId);
+      if (participant) participant.muted = message.muted;
+      renderParticipants();
+    } else if (message.type === 'FORCE_MUTE') {
+      isMuted = message.muted;
+      localStream?.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
+      muteBtn.classList.toggle('active', !isMuted);
+      const participant = participants.find(peer => peer.userId === userId);
+      if (participant) participant.muted = isMuted;
+      renderParticipants();
+    } else if (message.type === 'REMOVED_FROM_ROOM') {
+      alert(message.message);
+      leaveRoom(false);
     } else if (message.type === 'AUDIO_LEVEL') {
       document.querySelector(`[data-peer-id="${message.sender}"]`)?.classList.toggle('speaking', message.level > 0.5);
     } else if (message.type === 'ROOM_LIST') {
@@ -1218,12 +1475,19 @@
   // ── RENDER PARTICIPANTS ────────────────────────────────────────────────
   function renderParticipants() {
     participantsDiv.innerHTML = participants.map(p => `
-      <div class="participant-card" data-peer-id="${p.userId}">
+      <div class="participant-card${userId === hostId ? ' host' : ''}" data-peer-id="${p.userId}">
         <div class="participant-avatar">${escapeHtml(p.username.slice(0, 2).toUpperCase())}</div>
         <div class="participant-name">${escapeHtml(p.username)}${p.userId === userId ? ' (You)' : ''}</div>
         <div class="participant-status"><span class="status-dot"></span> ${p.muted ? 'Muted' : 'Connected'}</div>
+        ${p.userId !== userId && userId === hostId ? `<div class="participant-actions"><button class="mute-participant" data-peer-id="${p.userId}" data-muted="${p.muted ? 'true' : 'false'}">${p.muted ? 'Unmute' : 'Mute'}</button><button class="remove-participant" data-peer-id="${p.userId}">Remove</button></div>` : ''}
       </div>
     `).join('');
+    participantsDiv.querySelectorAll('.mute-participant').forEach(button => {
+      button.addEventListener('click', () => send({ type: 'MUTE_PARTICIPANT', target: button.dataset.peerId, muted: button.dataset.muted !== 'true' }));
+    });
+    participantsDiv.querySelectorAll('.remove-participant').forEach(button => {
+      button.addEventListener('click', () => send({ type: 'REMOVE_PARTICIPANT', target: button.dataset.peerId }));
+    });
   }
 
   // ── RENDER MESSAGES ──────────────────────────────────────────────────────
@@ -1250,7 +1514,7 @@
   // ── UPDATE ROOM INFO ─────────────────────────────────────────────────────
   function updateRoomInfo() {
     if (currentRoom) {
-      roomInfo.textContent = `${currentRoom.name} • 🌐 ${currentRoom.lang} • ${currentRoom.count} members`;
+      roomInfo.textContent = `${currentRoom.name} • 🌐 ${currentRoom.lang} • ${participants.length} members`;
     }
   }
 
@@ -1261,6 +1525,7 @@
     localStream?.getTracks().forEach(track => track.stop());
     localStream = null;
     userId = null;
+    hostId = null;
     if (currentRoom) {
       currentRoom.count = Math.max(currentRoom.count - 1, 0);
       currentRoom = null;
@@ -1277,6 +1542,7 @@
     renderRooms();
     leaveModal.classList.remove('open');
     sidebar.classList.remove('open');
+    chatBtn.classList.remove('active');
   }
 
   // ── EVENTS ──────────────────────────────────────────────────────────────
@@ -1291,7 +1557,8 @@
     const name = document.getElementById('new-room-name').value.trim() || 'New Room';
     const lang = document.getElementById('new-room-lang').value.trim() || 'English';
     const desc = document.getElementById('new-room-desc').value.trim() || 'Let\'s practice!';
-    const newRoom = { id: 'r' + Date.now(), name, lang, desc, count: 1, limit: 10 };
+    const limit = Math.max(2, Math.min(20, Number(document.getElementById('new-room-limit').value) || 6));
+    const newRoom = { id: 'r' + Date.now(), name, lang, desc, count: 0, limit };
     rooms.push(newRoom);
     createModal.classList.remove('open');
     createForm.reset();
@@ -1300,57 +1567,47 @@
   });
   createModal.addEventListener('click', e => { if (e.target === createModal) createModal.classList.remove('open'); });
 
-  // back
   mainBackBtn.addEventListener('click', leaveRoom);
 
-  // leave
   leaveBtn.addEventListener('click', () => leaveModal.classList.add('open'));
   stayBtn.addEventListener('click', () => leaveModal.classList.remove('open'));
   confirmLeaveBtn.addEventListener('click', leaveRoom);
 
-  // copy room link
   inviteBtn.addEventListener('click', async () => {
     if (!currentRoom) return;
     const roomLink = `${location.origin}${location.pathname}?room=${encodeURIComponent(currentRoom.name)}`;
     try {
       await navigator.clipboard.writeText(roomLink);
-      inviteLabel.textContent = 'Copied';
-      inviteBtn.title = 'Copied';
-      inviteBtn.setAttribute('aria-label', 'Copied');
-      setTimeout(() => {
-        inviteLabel.textContent = 'Copy link';
-        inviteBtn.title = 'Copy room link';
-        inviteBtn.setAttribute('aria-label', 'Copy room link');
-      }, 1500);
+      inviteLabel.textContent = 'Copied!';
+      setTimeout(() => { inviteLabel.textContent = 'Copy link'; }, 1500);
     } catch {
       window.prompt('Copy this room link:', roomLink);
     }
   });
 
-  // mute / speaker
   muteBtn.addEventListener('click', () => {
     isMuted = !isMuted;
     localStream?.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
     muteBtn.classList.toggle('active', !isMuted);
   });
+
   speakerBtn.addEventListener('click', () => {
     isSpeaker = !isSpeaker;
     speakerBtn.classList.toggle('active', isSpeaker);
     audioContainer.querySelectorAll('audio').forEach(audio => { audio.muted = !isSpeaker; });
   });
 
-  // chat toggle (mobile)
   chatBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    sidebar.classList.remove('closed');
     sidebar.classList.toggle('open');
     chatBtn.classList.toggle('active', sidebar.classList.contains('open'));
   });
+
   closeChatBtn.addEventListener('click', () => {
     sidebar.classList.remove('open');
-    sidebar.classList.add('closed');
     chatBtn.classList.remove('active');
   });
+
   document.addEventListener('click', (e) => {
     if (window.innerWidth <= 920) {
       if (!sidebar.contains(e.target) && !chatBtn.contains(e.target)) {
@@ -1360,7 +1617,6 @@
     }
   });
 
-  // chat send
   chatForm.addEventListener('submit', e => {
     e.preventDefault();
     const text = messageInput.value.trim();
@@ -1371,20 +1627,10 @@
     renderMessages();
   });
 
-  // rotate speaker
-  function rotateSpeaker() {
-    if (!participants.length) return;
-    participants.forEach(p => p.status = 'listening');
-    const idx = Math.floor(Math.random() * participants.length);
-    participants[idx].status = 'speaking';
-    renderParticipants();
-  }
-
   // ── INIT ────────────────────────────────────────────────────────────────
   renderFilters();
   renderRooms();
   connect();
-  setInterval(rotateSpeaker, 4000);
 </script>
 </body>
 </html>

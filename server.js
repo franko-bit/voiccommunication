@@ -23,7 +23,7 @@ wss.on('connection', (ws) => {
       if (message.type === 'JOIN_ROOM') joinRoom(ws, message);
       else if (message.type === 'LEAVE_ROOM') leaveRoom(ws);
       else if (message.type === 'GET_ROOMS') sendRoomList(ws);
-      else if (['OFFER', 'ANSWER', 'CANDIDATE', 'AUDIO_LEVEL', 'CHAT_MESSAGE', 'ROOM_SETTINGS'].includes(message.type)) {
+      else if (['OFFER', 'ANSWER', 'CANDIDATE', 'AUDIO_LEVEL', 'CHAT_MESSAGE', 'ROOM_SETTINGS', 'MUTE_PARTICIPANT', 'REMOVE_PARTICIPANT'].includes(message.type)) {
         forwardMessage(ws, message);
       }
     } catch (error) {
@@ -40,8 +40,8 @@ function joinRoom(ws, message) {
   if (!rooms.has(roomName)) rooms.set(roomName, { members: new Map(), hostId: ws.userId, topic: String(message.topic || '').slice(0, 100), description: String(message.description || '').slice(0, 300), limit: Math.max(2, Math.min(20, Number(message.limit) || 6)) });
   const room = rooms.get(roomName);
   if (room.members.size >= room.limit && !room.members.has(ws.userId)) return send(ws, { type: 'ROOM_ERROR', message: 'This room is full.' });
-  const peers = [...room.members.values()].map(({ userId, username: peerName }) => ({ userId, username: peerName }));
-  room.members.set(ws.userId, { ws, userId: ws.userId, username });
+  const peers = [...room.members.values()].map(({ userId, username: peerName, muted }) => ({ userId, username: peerName, muted: Boolean(muted) }));
+  room.members.set(ws.userId, { ws, userId: ws.userId, username, muted: false });
   ws.currentRoom = roomName;
   ws.username = username;
   send(ws, { type: 'ROOM_JOINED', room: roomName, userId: ws.userId, peers, hostId: room.hostId, topic: room.topic, description: room.description, limit: room.limit });
@@ -53,6 +53,10 @@ function leaveRoom(ws) {
   const room = rooms.get(ws.currentRoom);
   if (room) {
     room.members.delete(ws.userId);
+    if (room.hostId === ws.userId) {
+      room.hostId = room.members.keys().next().value;
+      if (room.hostId) send(room.members.get(room.hostId).ws, { type: 'HOST_CHANGED', hostId: room.hostId });
+    }
     broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: ws.userId });
     if (room.members.size === 0) rooms.delete(ws.currentRoom);
   }
@@ -62,6 +66,23 @@ function leaveRoom(ws) {
 function forwardMessage(ws, message) {
   const room = rooms.get(ws.currentRoom);
   if (!room) return;
+  if (['MUTE_PARTICIPANT', 'REMOVE_PARTICIPANT'].includes(message.type)) {
+    if (ws.userId !== room.hostId || !room.members.has(message.target) || message.target === ws.userId) return;
+    const target = room.members.get(message.target);
+    if (message.type === 'MUTE_PARTICIPANT') {
+      const muted = message.muted !== false;
+      target.muted = muted;
+      send(target.ws, { type: 'FORCE_MUTE', sender: ws.userId, muted });
+      broadcast(room, ws.userId, { type: 'PARTICIPANT_MUTED', peerId: message.target, muted });
+      send(ws, { type: 'PARTICIPANT_MUTED', peerId: message.target, muted });
+    } else {
+      send(target.ws, { type: 'REMOVED_FROM_ROOM', message: 'The room host removed you.' });
+      room.members.delete(message.target);
+      target.ws.currentRoom = null;
+      broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: message.target });
+    }
+    return;
+  }
   if (message.type === 'ROOM_SETTINGS') {
     if (ws.userId !== room.hostId) return;
     room.topic = String(message.topic || '').slice(0, 100);
