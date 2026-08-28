@@ -12,6 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, perMessageDeflate: false });
 const roomsFile = path.join(__dirname, 'rooms.json');
+const emptyRoomLifetime = 2 * 60 * 1000;
 const rooms = loadRooms();
 
 wss.on('connection', (ws) => {
@@ -42,6 +43,10 @@ function joinRoom(ws, message) {
   const username = String(message.username || 'Anonymous').trim().slice(0, 40) || 'Anonymous';
   if (!rooms.has(roomName)) return send(ws, { type: 'ROOM_ERROR', message: 'That room does not exist.' });
   const room = rooms.get(roomName);
+  if (room.emptyTimer) {
+    clearTimeout(room.emptyTimer);
+    room.emptyTimer = null;
+  }
   room.members ??= new Map();
   room.hostId ??= ws.userId;
   if (room.members.size >= room.limit && !room.members.has(ws.userId)) return send(ws, { type: 'ROOM_ERROR', message: 'This room is full.' });
@@ -61,9 +66,11 @@ function createRoom(ws, message) {
   const limit = Math.max(2, Math.min(20, Number(message.limit) || 6));
   if (!name) return send(ws, { type: 'ROOM_ERROR', message: 'Room name is required.' });
   if (rooms.has(name)) return send(ws, { type: 'ROOM_ERROR', message: 'A room with that name already exists.' });
-  rooms.set(name, { name, lang, description, limit, members: new Map(), hostId: null, createdBy: ws.userId });
+  const room = { name, lang, description, limit, members: new Map(), hostId: null, createdBy: ws.userId };
+  rooms.set(name, room);
+  scheduleEmptyRoomDeletion(room);
   saveRooms();
-  send(ws, { type: 'ROOM_CREATED', room: serializeRoom(rooms.get(name)) });
+  send(ws, { type: 'ROOM_CREATED', room: serializeRoom(room) });
   broadcastRoomLists();
 }
 
@@ -77,6 +84,7 @@ function leaveRoom(ws) {
       if (room.hostId) send(room.members.get(room.hostId).ws, { type: 'HOST_CHANGED', hostId: room.hostId });
     }
     broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: ws.userId });
+    if (room.members.size === 0) scheduleEmptyRoomDeletion(room);
     broadcastRoomLists();
   }
   ws.currentRoom = null;
@@ -110,6 +118,7 @@ function forwardMessage(ws, message) {
       room.members.delete(message.target);
       target.ws.currentRoom = null;
       broadcast(room, ws.userId, { type: 'PEER_LEFT', peerId: message.target });
+      if (room.members.size === 0) scheduleEmptyRoomDeletion(room);
       broadcastRoomLists();
     }
     return;
@@ -152,7 +161,9 @@ function serializeRoom(room) {
 function loadRooms() {
   try {
     const savedRooms = JSON.parse(fs.readFileSync(roomsFile, 'utf8'));
-    return new Map(savedRooms.map((room) => [room.name, { ...room, members: new Map(), hostId: null }]));
+    const loadedRooms = new Map(savedRooms.map((room) => [room.name, { ...room, members: new Map(), hostId: null }]));
+    loadedRooms.forEach(scheduleEmptyRoomDeletion);
+    return loadedRooms;
   } catch (error) {
     if (error.code !== 'ENOENT') console.warn('Could not load rooms.json:', error.message);
     return new Map();
@@ -162,6 +173,16 @@ function loadRooms() {
 function saveRooms() {
   const savedRooms = [...rooms.values()].map(({ name, lang, description, limit, createdBy }) => ({ name, lang, description, limit, createdBy }));
   fs.writeFileSync(roomsFile, JSON.stringify(savedRooms, null, 2));
+}
+
+function scheduleEmptyRoomDeletion(room) {
+  if (room.emptyTimer) clearTimeout(room.emptyTimer);
+  room.emptyTimer = setTimeout(() => {
+    if (room.members.size > 0 || rooms.get(room.name) !== room) return;
+    rooms.delete(room.name);
+    saveRooms();
+    broadcastRoomLists();
+  }, emptyRoomLifetime);
 }
 
 function broadcast(room, senderId, message) {

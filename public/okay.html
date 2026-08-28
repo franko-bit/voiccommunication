@@ -375,6 +375,52 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
       letter-spacing: 0.5px;
     }
 
+    .app-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245, 237, 230, 0.72);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+      z-index: 2000;
+    }
+
+    .app-loader.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .app-loader-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink-mid);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .app-loader-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--sand-dark);
+      border-top-color: var(--sage-dark);
+      border-radius: 50%;
+      animation: loader-spin 0.8s linear infinite;
+    }
+
+    @keyframes loader-spin {
+      to { transform: rotate(360deg); }
+    }
+
     /* ═══════════════════════════════════════════════════════════════════════
        CONTENT WRAPPER
        ═════════════════════════════════════════════════════════════════════ */
@@ -1453,6 +1499,13 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
 </head>
 <body>
 
+<div class="app-loader" id="app-loader" aria-live="polite" aria-busy="false">
+  <div class="app-loader-content">
+    <span class="app-loader-spinner" aria-hidden="true"></span>
+    <span id="app-loader-message">Connecting...</span>
+  </div>
+</div>
+
 <!-- DEBUG PANEL - Only visible when ?debug=1 -->
 <?php if (isset($_GET['debug']) && $_GET['debug'] == 1): ?>
 <div class="debug-panel" id="debugPanel">
@@ -1669,6 +1722,19 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
   const speakerBtn = document.getElementById('speaker-btn');
   const audioContainer = document.getElementById('audio-container');
   const connectionStatus = document.getElementById('connection-status');
+  const appLoader = document.getElementById('app-loader');
+  const appLoaderMessage = document.getElementById('app-loader-message');
+
+  function showLoader(message) {
+    appLoaderMessage.textContent = message;
+    appLoader.classList.add('visible');
+    appLoader.setAttribute('aria-busy', 'true');
+  }
+
+  function hideLoader() {
+    appLoader.classList.remove('visible');
+    appLoader.setAttribute('aria-busy', 'false');
+  }
 
   // ── RENDER FILTERS ──────────────────────────────────────────────────────
   function renderFilters() {
@@ -1736,12 +1802,15 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
 
   function connect() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    showLoader('Connecting to voice rooms...');
     socket = new WebSocket('wss://voice-chat-pro.onrender.com');
     socket.addEventListener('open', () => {
+      hideLoader();
       connectionStatus.textContent = '● Online';
       send({ type: 'GET_ROOMS' });
     });
     socket.addEventListener('close', () => {
+      hideLoader();
       connectionStatus.textContent = '● Offline';
       cleanupPeers();
     });
@@ -1756,6 +1825,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
       alert(message.message || 'Please sign in before joining a room.');
       location.href = loginUrl;
     } else if (message.type === 'ROOM_JOINED') {
+      hideLoader();
       userId = message.userId;
       hostId = message.hostId;
       featuredUserId = userId;
@@ -1836,6 +1906,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
       });
       renderRooms();
     } else if (message.type === 'ROOM_CREATED') {
+      hideLoader();
       createModal.classList.remove('open');
       createForm.reset();
       const room = message.room;
@@ -1851,6 +1922,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
     } else if (message.type === 'CANDIDATE') {
       handleCandidate(message);
     } else if (message.type === 'ROOM_ERROR') {
+      hideLoader();
       alert(message.message);
       leaveRoom(false);
     } else if (message.type === 'AUTH_REQUIRED') {
@@ -2014,10 +2086,9 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
   // ── ENTER ROOM ────────────────────────────────────────────────────────────
   async function enterRoom(room) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      alert('The server is not connected yet.');
+      showLoader('Connecting to voice rooms...');
       return;
     }
-    alert('Use headphones to prevent echo.\n\nSpeaker volume can be picked up by your microphone and create a feedback loop.');
     try {
       localStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -2037,6 +2108,7 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
     }
     currentRoom = room;
     username = usernameInput.textContent.trim();
+    showLoader('Joining room...');
     requestScreenWakeLock();
     history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room.name)}`);
     directory.style.display = 'none';
@@ -2082,10 +2154,15 @@ debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
   document.getElementById('create-cancel').addEventListener('click', () => createModal.classList.remove('open'));
   createForm.addEventListener('submit', e => {
     e.preventDefault();
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      showLoader('Connecting to voice rooms...');
+      return;
+    }
     const name = document.getElementById('new-room-name').value.trim() || 'New Room';
     const lang = document.getElementById('new-room-lang').value.trim() || 'English';
     const desc = document.getElementById('new-room-desc').value.trim() || 'Let\'s practice!';
     const limit = Math.max(2, Math.min(20, Number(document.getElementById('new-room-limit').value) || 6));
+    showLoader('Creating room...');
     send({ type: 'CREATE_ROOM', name, lang, description: desc, limit });
   });
   createModal.addEventListener('click', e => { if (e.target === createModal) createModal.classList.remove('open'); });
