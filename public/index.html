@@ -1408,6 +1408,7 @@
   let hostId = null;
   let localStream = null;
   let featuredUserId = null;
+  let screenWakeLock = null;
   const peerConnections = new Map();
   const pendingCandidates = new Map();
 
@@ -1654,6 +1655,7 @@
   }
 
   function cleanupPeers() {
+    releaseScreenWakeLock();
     peerConnections.forEach(peer => peer.close());
     peerConnections.clear();
     pendingCandidates.clear();
@@ -1735,6 +1737,26 @@
     return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
   }
 
+  async function requestScreenWakeLock() {
+    if (!('wakeLock' in navigator) || screenWakeLock || document.visibilityState !== 'visible') return;
+    try {
+      const wakeLock = await navigator.wakeLock.request('screen');
+      screenWakeLock = wakeLock;
+      wakeLock.addEventListener('release', () => {
+        if (screenWakeLock === wakeLock) screenWakeLock = null;
+      });
+    } catch (error) {
+      console.warn('Could not keep the screen awake:', error);
+    }
+  }
+
+  async function releaseScreenWakeLock() {
+    if (!screenWakeLock) return;
+    const wakeLock = screenWakeLock;
+    screenWakeLock = null;
+    await wakeLock.release().catch(() => {});
+  }
+
   // ── ENTER ROOM ────────────────────────────────────────────────────────────
   async function enterRoom(room) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -1749,6 +1771,7 @@
     }
     currentRoom = room;
     username = usernameInput.value.trim() || 'Anonymous';
+    requestScreenWakeLock();
     history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room.name)}`);
     directory.style.display = 'none';
     roomView.style.display = 'block';
@@ -1762,6 +1785,7 @@
   // ── LEAVE ROOM ──────────────────────────────────────────────────────────
   function leaveRoom(notify = true) {
     if (notify) send({ type: 'LEAVE_ROOM' });
+    releaseScreenWakeLock();
     cleanupPeers();
     localStream?.getTracks().forEach(track => track.stop());
     localStream = null;
@@ -1857,6 +1881,10 @@
         chatBtn.classList.remove('active');
       }
     }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (currentRoom && document.visibilityState === 'visible') requestScreenWakeLock();
   });
 
   chatForm.addEventListener('submit', e => {

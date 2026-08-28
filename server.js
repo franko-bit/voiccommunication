@@ -68,6 +68,17 @@ function leaveRoom(ws) {
 function forwardMessage(ws, message) {
   const room = rooms.get(ws.currentRoom);
   if (!room) return;
+  if (['OFFER', 'ANSWER', 'CANDIDATE'].includes(message.type)) {
+    const target = message.target;
+    if (!target || target === ws.userId) {
+      console.warn(`Blocked self-signaling message from ${ws.userId}`);
+      return;
+    }
+    if (room.members.has(target)) {
+      send(room.members.get(target).ws, { ...message, sender: ws.userId });
+    }
+    return;
+  }
   if (['MUTE_PARTICIPANT', 'REMOVE_PARTICIPANT'].includes(message.type)) {
     if (ws.userId !== room.hostId || !room.members.has(message.target) || message.target === ws.userId) return;
     const target = room.members.get(message.target);

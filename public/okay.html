@@ -1,35 +1,161 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+// ============================================================
+// DEBUG MODE - Enable error reporting
+// ============================================================
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// Create a debug log function
+function debug_log($message, $data = null) {
+    $log = date('Y-m-d H:i:s') . " - " . $message;
+    if ($data !== null) {
+        $log .= " - " . print_r($data, true);
+    }
+    error_log($log);
 }
 
-require_once '../db.php';
+debug_log("=== ROOM.PHP STARTED ===");
 
+// ============================================================
+// SESSION START
+// ============================================================
+if (session_status() === PHP_SESSION_NONE) {
+    debug_log("Starting session");
+    session_start();
+}
+debug_log("Session data", $_SESSION);
+
+// ============================================================
+// DATABASE CONNECTION - Try multiple paths
+// ============================================================
+debug_log("Current directory: " . __DIR__);
+
+$dbPaths = [
+    __DIR__ . '/db.php',
+    __DIR__ . '/../db.php',
+    __DIR__ . '/../../db.php',
+    __DIR__ . '/../config/db.php',
+    __DIR__ . '/../../config/db.php',
+];
+
+$dbFound = false;
+foreach ($dbPaths as $path) {
+    if (file_exists($path)) {
+        debug_log("Found db.php at: " . $path);
+        require_once $path;
+        $dbFound = true;
+        break;
+    }
+}
+
+if (!$dbFound) {
+    die("CRITICAL ERROR: db.php not found. Checked paths: " . print_r($dbPaths, true));
+}
+
+// Check if VOICE_ROOMS_SECRET is defined
+if (!defined('VOICE_ROOMS_SECRET')) {
+    debug_log("VOICE_ROOMS_SECRET not defined - setting default");
+    // You should change this to a strong secret key
+    define('VOICE_ROOMS_SECRET', 'your-strong-secret-key-change-this-in-production-2024');
+}
+
+// Check if PDO connection exists
+if (!isset($pdo)) {
+    die("CRITICAL ERROR: \$pdo not set in db.php");
+}
+debug_log("Database connection established");
+
+// ============================================================
+// USER AUTHENTICATION
+// ============================================================
 $isLoggedIn = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+debug_log("Is logged in: " . ($isLoggedIn ? 'YES' : 'NO'));
+
 $userName = $isLoggedIn ? ($_SESSION['full_name'] ?? 'User') : '';
 $currentPage = $_SERVER['REQUEST_URI'] ?? '/language-platform/voice-rooms/public/okay.php';
 $loginUrl = 'https://www.playmates.games/loginui.php?lang=en&redirect=' . urlencode($currentPage);
 
 if (!$isLoggedIn) {
-  header('Location: ' . $loginUrl);
-  exit;
+    debug_log("User not logged in, redirecting to login");
+    header('Location: ' . $loginUrl);
+    exit;
 }
 
+// ============================================================
+// VERIFY USER IN DATABASE - FIXED: Using user_id as the column
+// ============================================================
 $accountId = (int) $_SESSION['user_id'];
-$accountStatement = $pdo->prepare('SELECT id, full_name FROM users WHERE id = ? LIMIT 1');
-$accountStatement->execute([$accountId]);
-$account = $accountStatement->fetch();
-if (!$account) {
-  session_destroy();
-  header('Location: ' . $loginUrl);
-  exit;
+debug_log("Account ID: " . $accountId);
+
+try {
+    // Use user_id column instead of id (since that's what your table uses)
+    $sql = "SELECT user_id, full_name FROM users WHERE user_id = ? LIMIT 1";
+    debug_log("SQL Query: " . $sql);
+    
+    $accountStatement = $pdo->prepare($sql);
+    if (!$accountStatement) {
+        throw new Exception("Failed to prepare statement");
+    }
+    
+    $accountStatement->execute([$accountId]);
+    $account = $accountStatement->fetch();
+    
+    debug_log("Account query result", $account);
+    
+    // Alternative: try without user_id alias if needed
+    if (!$account) {
+        debug_log("Trying with id column fallback");
+        $sql = "SELECT id, full_name FROM users WHERE user_id = ? LIMIT 1";
+        $accountStatement = $pdo->prepare($sql);
+        $accountStatement->execute([$accountId]);
+        $account = $accountStatement->fetch();
+        debug_log("Fallback query result", $account);
+    }
+    
+    if (!$account) {
+        debug_log("Account not found in database - destroying session");
+        session_destroy();
+        header('Location: ' . $loginUrl);
+        exit;
+    }
+    
+    // Use user_id from the result
+    $userId = $account['user_id'] ?? $account['id'] ?? $accountId;
+    $userFullName = $account['full_name'] ?? 'User';
+    
+    debug_log("Account verified: ID=" . $userId . ", Name=" . $userFullName);
+    
+} catch (PDOException $e) {
+    debug_log("PDO Exception: " . $e->getMessage());
+    debug_log("Error Code: " . $e->getCode());
+    die("Database error: " . $e->getMessage());
+} catch (Exception $e) {
+    debug_log("General Exception: " . $e->getMessage());
+    die("Error: " . $e->getMessage());
 }
 
-$authPayload = rtrim(strtr(base64_encode(json_encode([
-  'userId' => (int) $account['id'],
-  'expiresAt' => time() + 300,
-])), '+/', '-_'), '=');
-$authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_SECRET);
+// ============================================================
+// GENERATE AUTH TOKEN - FIXED: Use the correct user ID
+// ============================================================
+try {
+    $authPayload = rtrim(strtr(base64_encode(json_encode([
+        'userId' => (int) $userId,
+        'expiresAt' => time() + 300,
+    ])), '+/', '-_'), '=');
+    
+    $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_SECRET);
+    debug_log("Auth token generated successfully");
+} catch (Exception $e) {
+    debug_log("Auth token generation error: " . $e->getMessage());
+    die("Auth token generation failed: " . $e->getMessage());
+}
+
+debug_log("=== ROOM.PHP COMPLETED SUCCESSFULLY ===");
+
+// ============================================================
+// HTML OUTPUT STARTS HERE
+// ============================================================
 ?>
 <!doctype html>
 <html lang="en">
@@ -37,8 +163,45 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PlayMates · Voice Rooms</title>
+  
+  <!-- Debug CSS - shows only when ?debug=1 is in URL -->
+  <?php if (isset($_GET['debug']) && $_GET['debug'] == 1): ?>
+  <style>
+    .debug-panel {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: #1a1a1a;
+        color: #00ff00;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        z-index: 99999;
+        max-height: 300px;
+        overflow: auto;
+        border: 2px solid #00ff00;
+        box-shadow: 0 0 20px rgba(0,255,0,0.3);
+    }
+    .debug-panel h3 {
+        color: #ffff00;
+        margin: 0 0 10px 0;
+    }
+    .debug-panel .success { color: #00ff00; }
+    .debug-panel .error { color: #ff4444; }
+    .debug-panel .info { color: #00ccff; }
+    .debug-panel pre {
+        margin: 5px 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+  </style>
+  <?php endif; ?>
+  
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23225548'/><circle cx='16' cy='16' r='6' fill='%23f5ede6'/></svg>" />
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1290,6 +1453,27 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
 </head>
 <body>
 
+<!-- DEBUG PANEL - Only visible when ?debug=1 -->
+<?php if (isset($_GET['debug']) && $_GET['debug'] == 1): ?>
+<div class="debug-panel" id="debugPanel">
+    <h3>🔍 Debug Information</h3>
+    <div>
+        <span class="success">✅ Logged In:</span> <?php echo $isLoggedIn ? 'Yes' : 'No'; ?><br>
+        <span class="success">✅ User ID:</span> <?php echo htmlspecialchars($userId); ?><br>
+        <span class="success">✅ User Name:</span> <?php echo htmlspecialchars($userFullName); ?><br>
+        <span class="success">✅ VOICE_ROOMS_SECRET:</span> <?php echo defined('VOICE_ROOMS_SECRET') ? 'Defined' : 'NOT Defined'; ?><br>
+        <span class="success">✅ PDO Connection:</span> <?php echo isset($pdo) ? 'Connected' : 'NOT Connected'; ?><br>
+        <span class="success">✅ Auth Token:</span> <?php echo htmlspecialchars(substr($authToken, 0, 50)) . '...'; ?><br>
+        <span class="info">📁 Script Path:</span> <?php echo htmlspecialchars(__FILE__); ?><br>
+        <span class="info">📁 Document Root:</span> <?php echo htmlspecialchars($_SERVER['DOCUMENT_ROOT']); ?><br>
+        <span class="info">📁 Current Directory:</span> <?php echo htmlspecialchars(__DIR__); ?><br>
+        <span class="info">📁 db.php Paths Checked:</span> 
+        <pre><?php foreach($dbPaths as $path) { echo htmlspecialchars($path) . (file_exists($path) ? ' ✅' : ' ❌') . "\n"; } ?></pre>
+    </div>
+    <button onclick="document.getElementById('debugPanel').style.display='none'" style="margin-top:10px;padding:5px 15px;background:#ff4444;color:#fff;border:none;border-radius:4px;cursor:pointer;">Close</button>
+</div>
+<?php endif; ?>
+
 <!-- HEADER -->
 <div class="header" id="main-header">
   <button class="back-link" id="main-back-btn" title="Back" aria-label="Back">
@@ -1298,7 +1482,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   </button>
   <div class="brand">PlayMates Voice Rooms</div>
   <div class="header-right">
-    <span id="username" class="account-name">Sign in required</span>
+    <span id="username" class="account-name"><?php echo htmlspecialchars($userFullName); ?></span>
     <button class="btn" id="create-btn">+ Create</button>
     <div class="status" id="connection-status">● Connecting...</div>
   </div>
@@ -1419,12 +1603,20 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
 </div>
 
 <script>
+  // Log debug info to console
+  console.log('=== Room.php Debug Info ===');
+  console.log('isLoggedIn:', <?php echo $isLoggedIn ? 'true' : 'false'; ?>);
+  console.log('userName:', <?php echo json_encode($userFullName); ?>);
+  console.log('userId:', <?php echo json_encode($userId); ?>);
+  console.log('account:', <?php echo json_encode(['fullName' => $userFullName, 'authToken' => substr($authToken, 0, 50) . '...']); ?>);
+  console.log('=============================');
+
   document.body.style.visibility = 'hidden';
   const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-  const userName = <?php echo json_encode($userName, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  const userName = <?php echo json_encode($userFullName, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
   const currentUrl = encodeURIComponent(window.location.href);
   const loginUrl = 'https://www.playmates.games/loginui.php?lang=en&redirect=' + currentUrl;
-  const account = <?php echo json_encode(['fullName' => $userName, 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  const account = <?php echo json_encode(['fullName' => $userFullName, 'authToken' => $authToken], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
   // ── DATA ────────────────────────────────────────────────────────────────
   let rooms = [
@@ -1449,6 +1641,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   let hostId = null;
   let localStream = null;
   let featuredUserId = null;
+  let screenWakeLock = null;
   const peerConnections = new Map();
   const pendingCandidates = new Map();
 
@@ -1660,6 +1853,10 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   }
 
   function createPeer(peerId, initiator) {
+    if (peerId === userId) {
+      console.warn('Blocked attempted self-peer connection');
+      return null;
+    }
     if (peerConnections.has(peerId)) return peerConnections.get(peerId);
     const peer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
     localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
@@ -1669,6 +1866,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
         audio = document.createElement('audio');
         audio.id = `audio-${peerId}`;
         audio.autoplay = true;
+        audio.muted = true;
         audioContainer.appendChild(audio);
       }
       audio.srcObject = event.streams[0];
@@ -1683,7 +1881,12 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   }
 
   async function handleOffer(message) {
+    if (message.sender === userId) {
+      console.warn('Rejected self-offer');
+      return;
+    }
     const peer = createPeer(message.sender, false);
+    if (!peer) return;
     await peer.setRemoteDescription(message.offer);
     for (const candidate of pendingCandidates.get(message.sender) || []) await peer.addIceCandidate(candidate);
     pendingCandidates.delete(message.sender);
@@ -1700,6 +1903,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   }
 
   function cleanupPeers() {
+    releaseScreenWakeLock();
     peerConnections.forEach(peer => peer.close());
     peerConnections.clear();
     pendingCandidates.clear();
@@ -1781,20 +1985,53 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
     return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
   }
 
+  async function requestScreenWakeLock() {
+    if (!('wakeLock' in navigator) || screenWakeLock || document.visibilityState !== 'visible') return;
+    try {
+      const wakeLock = await navigator.wakeLock.request('screen');
+      screenWakeLock = wakeLock;
+      wakeLock.addEventListener('release', () => {
+        if (screenWakeLock === wakeLock) screenWakeLock = null;
+      });
+    } catch (error) {
+      console.warn('Could not keep the screen awake:', error);
+    }
+  }
+
+  async function releaseScreenWakeLock() {
+    if (!screenWakeLock) return;
+    const wakeLock = screenWakeLock;
+    screenWakeLock = null;
+    await wakeLock.release().catch(() => {});
+  }
+
   // ── ENTER ROOM ────────────────────────────────────────────────────────────
   async function enterRoom(room) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       alert('The server is not connected yet.');
       return;
     }
+    alert('Use headphones to prevent echo.\n\nSpeaker volume can be picked up by your microphone and create a feedback loop.');
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      localStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          googEchoCancellation: true,
+          googNoiseSuppression: true,
+          googHighpassFilter: true,
+          channelCount: 1,
+          sampleRate: 16000,
+        },
+      });
     } catch {
       alert('Microphone access is required to join a room.');
       return;
     }
     currentRoom = room;
     username = usernameInput.textContent.trim();
+    requestScreenWakeLock();
     history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room.name)}`);
     directory.style.display = 'none';
     roomView.style.display = 'block';
@@ -1808,6 +2045,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
   // ── LEAVE ROOM ──────────────────────────────────────────────────────────
   function leaveRoom(notify = true) {
     if (notify) send({ type: 'LEAVE_ROOM' });
+    releaseScreenWakeLock();
     cleanupPeers();
     localStream?.getTracks().forEach(track => track.stop());
     localStream = null;
@@ -1879,6 +2117,7 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
     isSpeaker = !isSpeaker;
     speakerBtn.classList.toggle('active', isSpeaker);
     audioContainer.querySelectorAll('audio').forEach(audio => { audio.muted = !isSpeaker; });
+    console.log('Speaker:', isSpeaker ? 'ON' : 'OFF');
   });
 
   chatBtn.addEventListener('click', (e) => {
@@ -1899,6 +2138,10 @@ $authToken = $authPayload . '.' . hash_hmac('sha256', $authPayload, VOICE_ROOMS_
         chatBtn.classList.remove('active');
       }
     }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (currentRoom && document.visibilityState === 'visible') requestScreenWakeLock();
   });
 
   chatForm.addEventListener('submit', e => {
